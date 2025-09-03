@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project 0: Becoming Friends with Your Camera</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+            font-weight: 300;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 15px;
+        }
+        
+        h2 {
+            color: #34495e;
+            font-size: 1.8em;
+            margin-top: 50px;
+            margin-bottom: 25px;
+            font-weight: 400;
+        }
+        
+        .part-section {
+            margin-bottom: 60px;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .image-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            gap: 30px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .image-item {
+            text-align: center;
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        .image-item img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease;
+        }
+        
+        .image-item img:hover {
+            transform: scale(1.02);
+        }
+        
+        .single-image {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .single-image img {
+            max-width: 600px;
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        @media (max-width: 768px) {
+            .image-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .image-item {
+                min-width: auto;
+                width: 100%;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            h2 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Project 0: Becoming Friends with Your Camera</h1>
+    
+    <div class="part-section">
+        <h2>Part 1: Selfie: The Wrong Way vs. The Right Way</h2>
+        <div class="image-container">
+            <div class="image-item">
+                <img src="./media/part1/IMG_5929.HEIC" alt="Close-up Portrait - Wrong Way">
+                <div class="image-caption">Close-up Portrait (Wrong Way)</div>
+            </div>
+            <div class="image-item">
+                <img src="./media/part1/IMG_5932.HEIC" alt="Zoomed Portrait - Right Way">
+                <div class="image-caption">Zoomed Portrait (Right Way)</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="part-section">
+        <h2>Part 2: Architectural Perspective Compression</h2>
+        <div class="image-container">
+            <div class="image-item">
+                <img src="./media/part2/IMG_5943.HEIC" alt="Compressed Perspective">
+                <div class="image-caption">Compressed Perspective (Zoomed)</div>
+            </div>
+            <div class="image-item">
+                <img src="./media/part2/IMG_5942.HEIC" alt="Natural Perspective">
+                <div class="image-caption">Natural Perspective (Wide)</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="part-section">
+        <h2>Part 3: The Dolly Zoom</h2>
+        <div class="single-image">
+            <img src="./media/part3/ezgif.com-animated-gif-maker.gif" alt="Dolly Zoom Effect">
+            <div class="image-caption">Dolly Zoom Animation</div>
+        </div>
+    </div>
+</body>
+</html>
