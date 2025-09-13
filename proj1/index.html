@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glass Plate Image Alignment Gallery</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298, #667eea);
+            min-height: 100vh;
+            color: white;
+            line-height: 1.6;
+        }
+
+        .header {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 300;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #fff, #a8edea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 3rem;
+            margin-bottom: 4rem;
+        }
+
+        .image-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.6s;
+        }
+
+        .image-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .image-card:hover::before {
+            left: 100%;
+        }
+
+        .image-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            color: #fff;
+            text-transform: capitalize;
+        }
+
+        .image-comparison {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .image-slider {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            overflow: hidden;
+        }
+
+        .image-slider img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.5s ease;
+        }
+
+        .image-slider .original{
+            opacity: 0;
+        }
+
+        .slider-control {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .slider-control:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(-50%) scale(1.05);
+        }
+
+        .image-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+            transition: background 0.3s ease;
+        }
+
+        .info-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .info-label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #a8edea;
+        }
+
+        .loading-placeholder {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .gallery {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .image-card {
+                padding: 1.5rem;
+            }
+            
+            .container {
+                padding: 0 1rem;
+            }
+        }
+
+        /* Smooth entrance animation */
+        .image-card {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Staggered animation delays */
+        .image-card:nth-child(1) { animation-delay: 0.1s; }
+        .image-card:nth-child(2) { animation-delay: 0.2s; }
+        .image-card:nth-child(3) { animation-delay: 0.3s; }
+        .image-card:nth-child(4) { animation-delay: 0.4s; }
+        .image-card:nth-child(5) { animation-delay: 0.5s; }
+        .image-card:nth-child(6) { animation-delay: 0.6s; }
+        .image-card:nth-child(7) { animation-delay: 0.7s; }
+        .image-card:nth-child(8) { animation-delay: 0.8s; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Programming Project #1</h1>
+        <p>Jaanavi Thanamala</p>
+    </div>
+    <div class="container" style="margin-bottom: 3rem;">
+        <h2 style="font-size: 2rem; margin-bottom: 1rem;">My Alignment Approach</h2>
+      
+        <h3 style="font-size: 1.4rem; margin-top: 1.5rem;">Step 1: Single-Scale (Naive) Alignment</h3>
+        <p>
+          I started by implementing a single-scale alignment approach using search over a displacement window of [-15, 15] pixels. I aligned the green and red channels to the blue channel using the Normalized Cross-Correlation (NCC) metric:
+          This method worked well for small images like <code>cathedral.jpg</code> and <code>monastery.jpg</code>.
+        </p>
+        <h3 style="font-size: 1.4rem; margin-top: 1.5rem;">Step 2: Pyramid-Based Alignment (Coarse-to-Fine)</h3>
+  <p>
+    To scale up to high-resolution <code>.tif</code> images, I implemented a pyramid-based alignment strategy.
+    Each image was repeatedly downsampled, aligned at a coarse level, and refined at finer levels.
+    This approach significantly reduced runtime while still preserving accurate alignment.
+  </p>
+
+  <h3 style="font-size: 1.4rem; margin-top: 1.5rem;">Step 3: Edge-Aware Scoring with Sobel</h3>
+  <p>
+    Instead of relying solely on raw pixel values, I improved alignment by introducing an
+    edge-aware scoring function. The Sobel operator was applied to extract edge maps for each channel,
+    and the alignment score combined standard NCC on raw intensities (30%) with NCC on edges (70%).
+    This helped focus the metric on structural features rather than brightness differences.
+    It proved especially useful on difficult images like <code>emir</code>, where exposure varied across channels.
+  </p>
+
+  <h3 style="font-size: 1.4rem; margin-top: 1.5rem;">Step 4: RGB Reconstruction & Visualization</h3>
+  <p>
+    After alignment, the channels were stacked into an RGB image, normalized, and saved as a compressed <code>.jpg</code>.
+    Each result also records the displacement vectors for the green and red channels.
+    For <strong>cathedral</strong>, <strong>monastery</strong>, and <strong>tobolsk</strong>, I added a toggle
+    to compare the original and aligned images side by side.
+  </p>
+
+  <h3 style="font-size: 1.4rem; margin-top: 1.5rem;">Special Adjustments</h3>
+  <p>
+    While most images aligned well with the pyramid + Sobel approach, one required additional tuning:
+    <ul>
+      <li><code>self_portrait</code>: The strong contrast between the dark clothing, bright background, and sharp edges caused the algorithm to focus on the wrong features at first. I improved the result by increasing the number of pyramid levels and carefully verifying the displacements until the colors lined up properly.</li>
+    </ul>
+  </p>
+
+  <h3 style="font-size: 1.4rem; margin-top: 1.5rem;">Challenges</h3>
+  <p>
+    Some images, like emir.tif, were harder to align because the brightness and contrast of the channels were very different. By cropping out the noisy borders, I avoided false matches, and using Sobel edge detection made the alignment more reliable. Overall, combining the pyramid method with edge-based NCC gave much more consistent results across all the images.
+  </p>
+      
+
+    <div class="container">
+        <div class="gallery" id="gallery">
+            <!-- Images will be loaded here by JavaScript -->
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>CS180 Project 1 - Digital Image Processing | Click "Show Original" to compare original and processed images</p>
+    </div>
+
+    <script>
+        // List of images to display (update this with your actual image names)
+        const images = [
+    { name: 'cathedral_aligned', ext: 'jpg', disp: { green: [2, 5], red: [3, 12] } },
+    { name: 'monastery_aligned', ext: 'jpg', disp: { green: [2, -3], red: [2, 3] } },
+    { name: 'tobolsk_aligned', ext: 'jpg', disp: { green: [3, 3], red: [3, 6] } },
+    { name: 'church_aligned', ext: 'jpg', disp: { green: [4, 25], red: [-4, 58] } },
+    { name: 'emir_aligned', ext: 'jpg', disp: { green: [24, 49], red: [40, 107] } },
+    { name: 'harvesters_aligned', ext: 'jpg', disp: { green: [17, 60], red: [14, 124] } },
+    { name: 'icon_aligned', ext: 'jpg', disp: { green: [17, 41], red: [23, 90] } },
+    { name: 'italil_aligned', ext: 'jpg', disp: { green: [22, 38], red: [36, 77] } },
+    { name: 'lastochikino_aligned', ext: 'jpg', disp: { green: [-2, -3], red: [-8, 76] } },
+    { name: 'lugano_aligned', ext: 'jpg', disp: { green: [-17, 41], red: [-29, 92] } },
+    { name: 'melons_aligned', ext: 'jpg', disp: { green: [10, 80], red: [13, 177] } },
+    { name: 'self_portrait_aligned', ext: 'jpg', disp: { green: [29, 78], red: [37, 176] } },
+    { name: 'siren_aligned', ext: 'jpg', disp: { green: [-6, 49], red: [-24, 96] } },
+    { name: 'three_generations_aligned', ext: 'jpg', disp: { green: [12, 53], red: [9, 111] } },
+    { name: 'sample1_aligned', ext: 'jpg', disp: { green: [4, 4], red: [6, 8] } },
+    { name: 'sample2_aligned', ext: 'jpg', disp: { green: [4, 5], red: [6, 12] } }
+  ];
+
+        function createImageCard(imageData) {
+        const card = document.createElement('div');
+        card.className = 'image-card';
+
+        const baseName = imageData.name.replace('_aligned', '');
+        const alignedPath = `${imageData.name}.${imageData.ext}`;
+        const originalPath = `${baseName}.${imageData.ext}`;
+        const displayName = baseName.replace(/_/g, ' ');
+
+        const showToggle = ['cathedral', 'monastery', 'tobolsk'].includes(baseName);
+        const disp = imageData.disp || { green: [0, 0], red: [0, 0] };
+        card.innerHTML = `
+            <div class="image-title">${displayName}</div>
+            <div class="image-comparison">
+                <div class="image-slider">
+                <img src="${alignedPath}" alt="${displayName} aligned" class="aligned" style="opacity: 1;">
+                ${showToggle
+                    ? `<img src="${originalPath}" alt="${displayName} original" class="original" style="opacity: 0;" onerror="this.parentElement.innerHTML='<div class=loading-placeholder>Original image not found</div>'">`
+                    : ''
+                }
+                ${showToggle
+                    ? `<button class="slider-control" onclick="toggleImage(this)">Show Original</button>`
+                    : ''
+                }
+                     </div>
+            </div>
+            <div class="image-info">
+                <div class="info-item">
+                    <div class="info-label">Green Displacement</div>
+                    <div>(${disp.green[0]}, ${disp.green[1]})</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Red Displacement</div>
+                    <div>(${disp.red[0]}, ${disp.red[1]})</div>
+                </div>
+            </div>
+        `;
+        return card;
+    }
+
+        function toggleImage(button) {
+            const slider = button.parentElement;
+            const alignedImg = slider.querySelector('.aligned');
+            const originalImg = slider.querySelector('.original');
+            const isShowingAligned = alignedImg.style.opacity !== '0';
+            if (isShowingAligned) {
+                alignedImg.style.opacity = '0';
+                originalImg.style.opacity = '1';
+                button.textContent = 'Show Aligned';
+                button.style.background = 'rgba(0, 0, 0, 0.7)';
+            } else {
+                alignedImg.style.opacity = '1';
+                originalImg.style.opacity = '0';
+                button.textContent = 'Show Original';
+                button.style.background = 'rgba(34, 139, 34, 0.8)';
+            }    
+            
+        }
+
+        // Load all image cards
+    document.addEventListener('DOMContentLoaded', () => {
+      const gallery = document.getElementById('gallery');
+      images.forEach((img, index) => {
+        const card = createImageCard(img);
+        card.style.animationDelay = `${index * 0.1}s`;
+        gallery.appendChild(card);
+      });
+    });
+
+        window.addEventListener('scroll', () => {
+            const cards = document.querySelectorAll('.image-card');
+            cards.forEach(card => {
+                const rect = card.getBoundingClientRect();
+                const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+                
+                if (isVisible) {
+                    card.style.animationPlayState = 'running';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
