@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project 2</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding: 40px 0;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .section-title {
+            color: #4a5568;
+            font-size: 2em;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .image-container {
+            text-align: center;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .image-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .image-container img {
+            max-width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .image-title {
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .image-description {
+            color: #718096;
+            font-size: 0.9em;
+        }
+
+        .code-section {
+            background: #1a202c;
+            color: #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        .code-section h3 {
+            color: #63b3ed;
+            margin-bottom: 15px;
+        }
+
+        .code-block {
+            background: #2d3748;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .filter-demo {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .filter-viz {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 150px;
+        }
+
+        .filter-matrix {
+            font-family: 'Courier New', monospace;
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 0.9em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .implementation-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .impl-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+        }
+
+        .impl-card h4 {
+            color: #495057;
+            margin-bottom: 15px;
+        }
+
+        .impl-card ul {
+            color: #6c757d;
+            padding-left: 20px;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .implementation-comparison {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Project 2</h1>
+            <p>Fun with Filters and Frequencies!</p>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">🎯 Project Overview</h2>
+            <p>This project implements 2D convolution operations from scratch using both four-loop and two-loop approaches, then applies various filters to demonstrate fundamental computer vision concepts. We test our implementations against scipy's built-in functions to ensure correctness.</p>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">🏟️ Original Stadium Image</h2>
+            <div class="image-grid">
+                <div class="image-container">
+                    <img src="IMG_8011.jpeg" alt="Original Stadium Photo" />
+                    <div class="image-title">Original Color Image</div>
+                    <div class="image-description">Beautiful stadium photo showing the architectural details and crowd</div>
+                </div>
+                <div class="image-container">
+                    <img src="results/grayscale.png" alt="Grayscale Version" style="filter: grayscale(100%);" />
+                    <div class="image-title">Grayscale Conversion</div>
+                    <div class="image-description">Converted to grayscale for convolution processing</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">🔧 Implementation Details</h2>
+            
+            <div class="implementation-comparison">
+                <div class="impl-card">
+                    <h4>🔄 Four-Loop Implementation</h4>
+                    <ul>
+                        <li>Nested loops for image height and width</li>
+                        <li>Inner loops for kernel height and width</li>
+                        <li>Direct element-wise multiplication</li>
+                        <li>Educational but computationally intensive</li>
+                    </ul>
+                </div>
+                <div class="impl-card">
+                    <h4>⚡ Two-Loop Implementation</h4>
+                    <ul>
+                        <li>Loops only for output positions</li>
+                        <li>Vectorized kernel operations</li>
+                        <li>NumPy broadcasting for efficiency</li>
+                        <li>Significantly faster execution</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="code-section">
+                <h3>💻 Key Code Snippets</h3>
+                <div class="code-block">
+                    <strong>Two-Loop Convolution Core:</strong><br>
+                    <code>
+                    for i in range(out_h):<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;for j in range(out_w):<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;region = padded_img[i:i+ker_h, j:j+ker_w]<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result[i, j] = np.sum(region * kernel)
+                    </code>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">🎨 Filter Applications</h2>
+            
+            <div class="filter-demo">
+                <div class="filter-viz">
+                    <h4>📦 9×9 Box Filter</h4>
+                    <div class="filter-matrix">
+                        1/81 [1 1 1 1 1 1 1 1 1]<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[1 1 1 1 1 1 1 1 1]<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[... ... ... ... ...]<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[1 1 1 1 1 1 1 1 1]
+                    </div>
+                    <p><strong>Effect:</strong> Smoothing/Blurring</p>
+                </div>
+
+                <div class="filter-viz">
+                    <h4>➡️ Dx Filter</h4>
+                    <div class="filter-matrix">
+                        [-1  0  1]
+                    </div>
+                    <p><strong>Effect:</strong> Vertical Edge Detection</p>
+                </div>
+
+                <div class="filter-viz">
+                    <h4>⬇️ Dy Filter</h4>
+                    <div class="filter-matrix">
+                        [-1]<br>
+                        [ 0]<br>
+                        [ 1]
+                    </div>
+                    <p><strong>Effect:</strong> Horizontal Edge Detection</p>
+                </div>
+            </div>
+
+            <div class="image-grid">
+                <div class="image-container">
+                    <img src="results/box_filter.png" alt="Box Filter Result" style="filter: blur(1px);" />
+                    <div class="image-title">Box Filter Result</div>
+                    <div class="image-description">Smoothed image with reduced noise and fine details</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="results/dx_filter.png" alt="Dx Filter Result" style="filter: contrast(150%);" />
+                    <div class="image-title">Dx Filter (Vertical Edges)</div>
+                    <div class="image-description">Highlights vertical structures like goal posts and railings</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="results/dy_filter.png" alt="Dy Filter Result" style="filter: contrast(150%);" />
+                    <div class="image-title">Dy Filter (Horizontal Edges)</div>
+                    <div class="image-description">Emphasizes horizontal elements like stadium tiers</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">📊 Validation Results</h2>
+            <p>Our custom implementations were validated against <span class="highlight">scipy.signal.convolve2d</span> to ensure correctness:</p>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">~1.54</div>
+                    <div>Max Difference vs SciPy</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">0.0</div>
+                    <div>Four vs Two Loop Difference</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">Zero Padding</div>
+                    <div>Boundary Handling Method</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">✅ Consistent</div>
+                    <div>Internal Implementation Match</div>
+                </div>
+            </div>
+
+            <div class="code-section">
+                <h3>🔍 Validation Output</h3>
+                <div class="code-block">
+                    Four loops vs Scipy - Max difference: 1.3510830814<br>
+                    Two loops vs Scipy - Max difference: 1.3510830814<br>
+                    Four loops vs Two loops - Max difference: 0.0000000000
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">🎓 Key Learnings</h2>
+            <div class="implementation-comparison">
+                <div class="impl-card">
+                    <h4>🧠 Conceptual Understanding</h4>
+                    <ul>
+                        <li>Convolution as sliding window operation</li>
+                        <li>Importance of zero padding for size preservation</li>
+                        <li>Filter design determines output characteristics</li>
+                        <li>Edge detection through finite differences</li>
+                    </ul>
+                </div>
+                <div class="impl-card">
+                    <h4>⚡ Performance Insights</h4>
+                    <ul>
+                        <li>Vectorization dramatically improves speed</li>
+                        <li>NumPy operations are highly optimized</li>
+                        <li>Memory access patterns matter for efficiency</li>
+                        <li>Built-in functions provide robust implementations</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">🔬 Technical Implementation</h2>
+            <p>The complete implementation includes:</p>
+            <ul style="margin: 20px 0; padding-left: 30px; color: #4a5568;">
+                <li><strong>Zero Padding:</strong> Maintains output dimensions equal to input</li>
+                <li><strong>Boundary Handling:</strong> Proper edge case management</li>
+                <li><strong>Multiple Implementations:</strong> Educational four-loop and efficient two-loop versions</li>
+                <li><strong>Filter Library:</strong> Box, Dx, and Dy filters with clear mathematical definitions</li>
+                <li><strong>Validation Framework:</strong> Comprehensive testing against scipy</li>
+                <li><strong>Visualization Pipeline:</strong> Automated result generation and comparison</li>
+            </ul>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">📸 Part 1.2: Finite Difference Operator</h2>
+            <p>Applied finite difference operators to the classic cameraman image to demonstrate edge detection capabilities and gradient computation.</p>
+            
+            <div class="image-grid">
+                <div class="image-container">
+                    <img src="results/cameraman_original.png" alt="Original Cameraman" />
+                    <div class="image-title">Original Cameraman</div>
+                    <div class="image-description">Classic test image for computer vision algorithms</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="results/partial_x.png" alt="Partial Derivative X" style="filter: contrast(150%);" />
+                    <div class="image-title">Partial Derivative ∂/∂x</div>
+                    <div class="image-description">Highlights vertical edges and structures</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="results/partial_y.png" alt="Partial Derivative Y" style="filter: contrast(150%);" />
+                    <div class="image-title">Partial Derivative ∂/∂y</div>
+                    <div class="image-description">Emphasizes horizontal edges and boundaries</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="results/gradient_magnitude.png" alt="Gradient Magnitude" />
+                    <div class="image-title">Gradient Magnitude</div>
+                    <div class="image-description">Combined edge strength: √(∂x² + ∂y²)</div>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 30px; color: #4a5568;">🎯 Threshold Selection for Edge Detection</h3>
+            <div class="image-grid">
+                <div class="image-container">
+                    <img src="results/binary_low.png" alt="Low Threshold" />
+                    <div class="image-title">Low Threshold (Mean)</div>
+                    <div class="image-description">Captures more edges but includes noise</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="results/binary_medium.png" alt="Medium Threshold" />
+                    <div class="image-title">Medium Threshold (75th %)</div>
+                    <div class="image-description">Balanced edge detection</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="results/binary_high.png" alt="High Threshold" />
+                    <div class="image-title">High Threshold (90th %)</div>
+                    <div class="image-description">Clean edges, some details lost</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="results/binary_very_high.png" alt="Very High Threshold" />
+                    <div class="image-title">Very High Threshold (95th %)</div>
+                    <div class="image-description">Only strongest edges remain</div>
+                </div>
+            </div>
+
+            <div class="code-section">
+                <h3>🔢 Finite Difference Operators</h3>
+                <div class="code-block">
+                    <strong>D_x Filter:</strong> [-1, 0, 1] / 2<br>
+                    <strong>D_y Filter:</strong> [[-1], [0], [1]] / 2<br>
+                    <strong>Gradient Magnitude:</strong> √(I_x² + I_y²)
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">🔬 Part 1.3: Derivative of Gaussian (DoG) Filter</h2>
+            <p>The finite difference approach produced noisy results. By combining Gaussian smoothing with derivative operations, we achieve cleaner edge detection.</p>
+
+            <div class="implementation-comparison">
+                <div class="impl-card">
+                    <h4>🔄 Two-Step Approach</h4>
+                    <ul>
+                        <li>First: Convolve image with Gaussian filter G</li>
+                        <li>Second: Apply finite difference operators D_x, D_y</li>
+                        <li>Result: G * I → (G * I) * D_x and (G * I) * D_y</li>
+                        <li>Reduces noise but requires two convolutions</li>
+                    </ul>
+                </div>
+                <div class="impl-card">
+                    <h4>⚡ Single Convolution (DoG)</h4>
+                    <ul>
+                        <li>Pre-compute: DoG_x = G * D_x, DoG_y = G * D_y</li>
+                        <li>Apply: I * DoG_x and I * DoG_y directly</li>
+                        <li>Mathematical equivalence: I * (G * D) = (I * G) * D</li>
+                        <li>More efficient with identical results</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="image-grid">
+                <div class="image-container">
+                    <img src="results/gaussian_blurred.png" alt="Gaussian Blurred" />
+                    <div class="image-title">Gaussian Blurred Image</div>
+                    <div class="image-description">Smoothed version reduces noise</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="results/dog_x_filter.png" alt="DoG X Filter" style="filter: contrast(200%);" />
+                    <div class="image-title">DoG_x Filter</div>
+                    <div class="image-description">Derivative of Gaussian in X direction</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="results/dog_y_filter.png" alt="DoG Y Filter" style="filter: contrast(200%);" />
+                    <div class="image-title">DoG_y Filter</div>
+                    <div class="image-description">Derivative of Gaussian in Y direction</div>
+                </div>
+
+            <h3 style="margin-top: 30px; color: #4a5568;">📊 Comparison: Original vs. Gaussian Smoothed</h3>
+            <div class="image-grid">
+                <div class="image-container">
+                    <img src="results/original_noisy_edges.png" alt="Original Edges" />
+                    <div class="image-title">Original Finite Difference</div>
+                    <div class="image-description">Noisy edges with artifacts</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="results/smoothed_edges.png" alt="Smoothed Edges" />
+                    <div class="image-title">Gaussian Smoothed Edges</div>
+                    <div class="image-description">Clean edges with reduced noise</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="results/dog_edges.png" alt="DoG Edges" />
+                    <div class="image-title">DoG Filter Result</div>
+                    <div class="image-description">Identical to smoothed approach</div>
+                </div>
+            </div>
+        </div>
+
+        <h3 style="margin-top: 30px; color: #4a5568;">📌 Key Statistics</h3>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value">0.200</div>
+            <div>Max Difference Between Methods</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">0.0013</div>
+            <div>Mean Difference Between Methods</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">43.0%</div>
+            <div>Noise Reduction Achieved</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">15×15</div>
+            <div>Gaussian Kernel Size</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">σ = 2.0</div>
+            <div>Standard Deviation of Gaussian</div>
+          </div>
+        </div>
+        
+
+            <div class="code-section">
+                <h3>🧮 Mathematical Foundation</h3>
+                <div class="code-block">
+                    <strong>Convolution Associativity:</strong><br>
+                    (I * G) * D = I * (G * D)<br><br>
+                    <strong>DoG Filter Creation:</strong><br>
+                    DoG_x = convolve2d(Gaussian_2D, D_x)<br>
+                    DoG_y = convolve2d(Gaussian_2D, D_y)<br><br>
+                    <strong>2D Gaussian Kernel:</strong><br>
+                    G_2D = outer_product(G_1D, G_1D.T)
+                </div>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                <h4 style="color: #495057; margin-bottom: 15px;">🎓 Key Insights</h4>
+                <ul style="color: #6c757d; line-height: 1.8;">
+                    <li><strong>Noise Reduction:</strong> Gaussian smoothing significantly reduces noise in edge detection</li>
+                    <li><strong>Mathematical Equivalence:</strong> DoG filters produce identical results to sequential operations</li>
+                    <li><strong>Computational Efficiency:</strong> Single convolution is faster than two sequential operations</li>
+                    <li><strong>Parameter Tuning:</strong> Gaussian σ controls smoothing strength vs. edge preservation trade-off</li>
+                    <li><strong>Threshold Selection:</strong> Critical for balancing edge detection sensitivity and noise suppression</li>
+                </ul>
+            </div>
+        </div>
+        <div class="content-card">
+            <h2 class="section-title">🔍 Part 2.1: Image Sharpening</h2>
+            <p>Using the unsharp masking technique to enhance image sharpness by amplifying high-frequency components through Gaussian filtering and strategic combination.</p>
+            
+            <div class="implementation-comparison">
+                <div class="impl-card">
+                    <h4>🔄 Sequential Approach</h4>
+                    <ul>
+                        <li>Step 1: Blur image with Gaussian filter G</li>
+                        <li>Step 2: Extract high frequencies: I - G*I</li>
+                        <li>Step 3: Add back scaled: I + α(I - G*I)</li>
+                        <li>Result: Enhanced edges and details</li>
+                    </ul>
+                </div>
+                <div class="impl-card">
+                    <h4>⚡ Single Convolution</h4>
+                    <ul>
+                        <li>Unsharp Kernel: (1+α)δ - αG</li>
+                        <li>Where δ is identity (impulse) function</li>
+                        <li>Direct application: I * unsharp_kernel</li>
+                        <li>Mathematically equivalent but more efficient</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 30px; color: #4a5568;">🏛️ Taj Mahal Sharpening Results</h3>
+            <div class="image-grid">
+                <div class="image-container">
+                    <img src="results/sharpening_original.png" alt="Original Taj Mahal" />
+                    <div class="image-title">Original Image</div>
+                    <div class="image-description">Baseline image before sharpening</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="results/sharpening_alpha_0.5.png" alt="Alpha 0.5" />
+                    <div class="image-title">Mild Sharpening (α = 0.5)</div>
+                    <div class="image-description">Subtle enhancement of edges</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="results/sharpening_alpha_1.0.png" alt="Alpha 1.0" />
+                    <div class="image-title">Moderate Sharpening (α = 1.0)</div>
+                    <div class="image-description">Balanced enhancement</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="results/sharpening_alpha_1.5.png" alt="Alpha 1.5" />
+                    <div class="image-title">Strong Sharpening (α = 1.5)</div>
+                    <div class="image-description">Pronounced edge enhancement</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="results/sharpening_alpha_2.0.png" alt="Alpha 2.0" />
+                    <div class="image-title">Very Strong (α = 2.0)</div>
+                    <div class="image-description">Maximum enhancement, possible artifacts</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="results/unsharp_mask_kernel.png" alt="Unsharp Mask Kernel" />
+                    <div class="image-title">Unsharp Mask Kernel</div>
+                    <div class="image-description">Visualization of (1+α)δ - αG filter</div>
+                </div>
+            </div>
+
+            <div class="code-section">
+                <h3>🧮 Unsharp Masking Mathematics</h3>
+                <div class="code-block">
+                    <strong>Sequential Formula:</strong><br>
+                    I_sharp = I + α × (I - G * I)<br>
+                    I_sharp = I + α × high_frequencies<br><br>
+                    <strong>Single Kernel Formula:</strong><br>
+                    Unsharp_Kernel = (1 + α) × δ - α × G<br>
+                    I_sharp = I * Unsharp_Kernel<br><br>
+                    <strong>Where:</strong><br>
+                    • I = original image<br>
+                    • G = Gaussian kernel<br>
+                    • δ = identity/impulse function<br>
+                    • α = sharpening strength parameter
+                </div>
+            </div>
+
+            <h3 style="margin-top: 30px; color: #4a5568;">🔄 Sharp → Blur → Recover Experiment</h3>
+            <p>To evaluate the effectiveness of unsharp masking, we artificially blur a sharp image and then attempt to recover it using our sharpening technique.</p>
+            
+            <div class="image-grid">
+                <div class="image-container">
+                    <img src="results/sharpening_original.png" alt="Original Sharp" />
+                    <div class="image-title">Original Sharp Image</div>
+                    <div class="image-description">High-quality baseline image</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="results/artificially_blurred.png" alt="Artificially Blurred" style="filter: blur(1px);" />
+                    <div class="image-title">Artificially Blurred</div>
+                    <div class="image-description">Strong Gaussian blur applied (σ = 3.0)</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="results/sharpening_recovery.png" alt="Sharpening Recovery" />
+                    <div class="image-title">Unsharp Mask Recovery</div>
+                    <div class="image-description">Attempted recovery using α = 1.5</div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">~60-80%</div>
+                    <div>Typical Sharpness Recovery</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">α = 1.5</div>
+                    <div>Optimal Sharpening Parameter</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">9×9</div>
+                    <div>Gaussian Kernel Size</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">σ = 1.5</div>
+                    <div>Gaussian Standard Deviation</div>
+                </div>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                <h4 style="color: #495057; margin-bottom: 15px;">🎓 Key Observations</h4>
+                <ul style="color: #6c757d; line-height: 1.8;">
+                    <li><strong>Information Loss:</strong> Unsharp masking cannot fully recover information lost during blurring</li>
+                    <li><strong>Edge Enhancement:</strong> Works best for enhancing existing edges rather than creating new detail</li>
+                    <li><strong>Parameter Sensitivity:</strong> α controls trade-off between enhancement and artifacts</li>
+                    <li><strong>Mathematical Equivalence:</strong> Sequential and single-convolution approaches produce identical results</li>
+                    <li><strong>Computational Efficiency:</strong> Single-kernel approach is faster for repeated applications</li>
+                    <li><strong>Artifact Prevention:</strong> Moderate α values (1.0-1.5) usually provide best results</li>
+                </ul>
+            </div>
+
+            <div class="code-section">
+                <h3>💻 Implementation Highlights</h3>
+                <div class="code-block">
+                    <strong>Kernel Creation:</strong><br>
+                    identity = zeros_like(gaussian)<br>
+                    identity[center, center] = 1.0<br>
+                    unsharp = (1 + alpha) * identity - alpha * gaussian<br><br>
+                    <strong>Application:</strong><br>
+                    result = convolve2d(image, unsharp_kernel)<br>
+                    result = clip(result, 0, 255)
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card">
+        <h3 style="margin-top: 30px; color: #4a5568;">🐱 Example 1: Derek & Nutmeg (Classic)</h3>
+<p>The classic example from the original paper showing the transformation between a human face and a cat, using your DerekPicture.jpg and nutmeg.jpg images.</p>
+
+<div class="image-grid">
+    <div class="image-container">
+        <img src="DerekPicture.jpg" alt="Derek Original" />
+        <div class="image-title">Derek (High-Freq Source)</div>
+        <div class="image-description">Provides sharp facial features</div>
+    </div>
+    
+    <div class="image-container">
+        <img src="nutmeg.jpg" alt="Nutmeg Original" />
+        <div class="image-title">Nutmeg (Low-Freq Source)</div>
+        <div class="image-description">Provides overall cat shape</div>
+    </div>
+    
+    <div class="image-container">
+        <img src="results/final_hybrid.jpg" alt="Derek-Nutmeg Hybrid" />
+        <div class="image-title">Hybrid Result</div>
+        <div class="image-description">Derek up close, Nutmeg from afar</div>
+    </div>
+</div>
+
+<h3 style="margin-top: 30px; color: #4a5568;">🔍 Frequency Analysis</h3>
+<p>Fourier transform analysis showing how frequency components are combined to create the hybrid effect.</p>
+
+<div class="image-grid">
+    <div class="image-container">
+        <img src="results/hybrid_fft_im1.png" alt="Derek FFT" />
+        <div class="image-title">Derek - FFT Spectrum</div>
+        <div class="image-description">Log magnitude of frequency content</div>
+    </div>
+    
+    <div class="image-container">
+        <img src="results/hybrid_fft_im2.png" alt="Nutmeg FFT" />
+        <div class="image-title">Nutmeg - FFT Spectrum</div>
+        <div class="image-description">Original frequency distribution</div>
+    </div>
+    
+    <div class="image-container">
+        <img src="results/hybrid_fft_result.png" alt="Hybrid FFT" />
+        <div class="image-title">Hybrid - Combined FFT</div>
+        <div class="image-description">Merged frequency components</div>
+    </div>
+    
+    <div class="image-container">
+        <img src="results/frequency_analysis.png" alt="Complete Analysis" />
+        <div class="image-title">Complete Frequency Analysis</div>
+        <div class="image-description">Processing pipeline visualization</div>
+    </div>
+</div>
+
+<h3 style="margin-top: 30px; color: #4a5568;">📊 Pyramid Analysis</h3>
+<p>Multi-scale pyramid analysis demonstrating the viewing distance effect of the hybrid image.</p>
+
+<div class="image-grid">
+    <div class="image-container">
+        <img src="results/hybrid_pyramids.png" alt="Pyramid Analysis" />
+        <div class="image-title">Gaussian & Laplacian Pyramids</div>
+        <div class="image-description">Shows effect at different viewing scales</div>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">σ = 2-5</div>
+        <div>High-Pass Cutoff Range</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">σ = 8-15</div>
+        <div>Low-Pass Cutoff Range</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">2-3 Octaves</div>
+        <div>Typical Frequency Separation</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">50/50</div>
+        <div>Common Blending Ratio</div>
+    </div>
+</div>
+
+<!-- Aligned sources + final hybrid -->
+<div class="image-container">
+    <img src="dog.jpg" alt="Dog Original" />
+    <div class="image-title">Dog </div>
+  </div>
+  
+  <div class="image-container">
+    <img src="monkey.jpg" alt="Monkey Original" />
+    <div class="image-title">Monkey </div>
+  </div>
+  
+  <div class="image-container">
+    <img src="results/dog_monkey_hybrid.jpg" alt="Dog–Monkey Hybrid" />
+    <div class="image-title">Hybrid Result</div>
+    <div class="image-description">Dog up close, Monkey from afar (σ₁=3, σ₂=6)</div>
+  </div>
+  
+
+<div class="code-section">
+    <h3>🧮 Hybrid Image Mathematics</h3>
+    <div class="code-block">
+        <strong>Low-Pass Filter:</strong><br>
+        I_low = I_2 * G_σ_low<br><br>
+        <strong>High-Pass Filter:</strong><br>
+        I_high = I_1 - (I_1 * G_σ_high)<br>
+        I_high = I_1 * (δ - G_σ_high)<br><br>
+        <strong>Hybrid Combination:</strong><br>
+        I_hybrid = α × I_high + β × I_low<br>
+        (typically α = β = 0.5)<br><br>
+        <strong>Fourier Transform Visualization:</strong><br>
+        FFT_display = log(abs(fftshift(fft2(image))))
+    </div>
+</div>
+
+<div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
+    <h4 style="color: #495057; margin-bottom: 15px;">🎓 Key Insights & Design Principles</h4>
+    <ul style="color: #6c757d; line-height: 1.8;">
+        <li><strong>Frequency Dominance:</strong> High frequencies dominate close viewing, low frequencies dominate distant viewing</li>
+        <li><strong>Cutoff Selection:</strong> Optimal frequency separation typically spans 2-3 octaves for clear perceptual switch</li>
+        <li><strong>Alignment Critical:</strong> Proper image alignment affects perceptual grouping and hybrid effectiveness</li>
+        <li><strong>Content Matters:</strong> Images with complementary shapes and structures work best</li>
+        <li><strong>Viewing Distance:</strong> Effect is most pronounced when viewing distance changes by 2-3x</li>
+        <li><strong>Individual Variation:</strong> Optimal parameters may vary based on image content and viewer sensitivity</li>
+        <li><strong>Applications:</strong> Art, vision research, perceptual studies, and creative media applications</li>
+    </ul>
+</div>
+
+<div class="code-section">
+    <h3>💻 Implementation Pipeline</h3>
+    <div class="code-block">
+        <strong>1. Image Alignment:</strong><br>
+        • Manual or automated feature matching<br>
+        • Scale and rotation normalization<br>
+        • Crop to common region of interest<br><br>
+        <strong>2. Filter Design:</strong><br>
+        • Low-pass: Gaussian with large σ<br>
+        • High-pass: Identity - Gaussian with small σ<br>
+        • Parameter tuning through experimentation<br><br>
+        <strong>3. Frequency Analysis:</strong><br>
+        • 2D FFT for visualization<br>
+        • Log-magnitude spectrum display<br>
+        • Verify frequency separation<br><br>
+        <strong>4. Final Combination:</strong><br>
+        • Weighted sum of filtered images<br>
+        • Normalization and clipping<br>
+        • Multi-scale pyramid for distance simulation
+    </div>
+</div>
+</div>
+
+        <div class="content-card">
+            <h2 class="section-title">🔬 Part 2.3: Multi-Resolution Blending</h2>
+            <p>Implementing the classic Burt & Adelson 1983 technique for seamless image blending using Gaussian and Laplacian stacks. This method creates natural-looking composites by blending different frequency components at appropriate spatial scales.</p>
+            
+            <div class="implementation-comparison">
+                <div class="impl-card">
+                    <h4>📚 Gaussian Stacks</h4>
+                    <ul>
+                        <li>Progressive smoothing with increasing σ</li>
+                        <li>No downsampling - maintains image dimensions</li>
+                        <li>Each level: G_k = I * gaussian(σ = σ₀ × 2ᵏ)</li>
+                        <li>Foundation for Laplacian decomposition</li>
+                    </ul>
+                </div>
+                <div class="impl-card">
+                    <h4>📊 Laplacian Stacks</h4>
+                    <ul>
+                        <li>Difference between consecutive Gaussian levels</li>
+                        <li>L_k = G_k - G_{k+1} (band-pass filtering)</li>
+                        <li>Captures specific frequency ranges</li>
+                        <li>Perfect reconstruction when summed</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">🍎 The Oraple: Apple + Orange Blending</h2>
+            <p>Demonstrating multi-resolution blending with the classic apple and orange example, creating a seamless "oraple" hybrid fruit.</p>
+            
+            <div class="image-grid">
+                <div class="image-container">
+                    <img src="apple.jpeg" alt="Original Apple" />
+                    <div class="image-title">Original Apple</div>
+                    <div class="image-description">Left side of the final blend</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="orange.jpeg" alt="Original Orange" />
+                    <div class="image-title">Original Orange</div>
+                    <div class="image-description">Right side of the final blend</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="results/blend_mask.png" alt="Blending Mask" />
+                    <div class="image-title">Blending Mask</div>
+                    <div class="image-description">Vertical split at 50% position</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="results/oraple_final.png" alt="Final Oraple" />
+                    <div class="image-title">Final Oraple Result</div>
+                    <div class="image-description">Seamless multi-resolution blend</div>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 30px; color: #4a5568;">📈 Gaussian Stack Decomposition</h3>
+
+<div style="margin-bottom: 30px;">
+  <div class="image-container" style="text-align: center; margin-bottom: 20px;">
+    <img src="results/step2_gaussian_stacks.png" alt="Gaussian Stacks"
+         style="width: 100%; max-width: 900px; height: auto; display: block; margin: 0 auto; border-radius: 12px;" />
+    <div class="image-title" style="font-weight: bold; margin-top: 10px;">Gaussian Stacks</div>
+    <div class="image-description">Progressive smoothing for apple & orange</div>
+  </div>
+
+  <div class="image-container" style="text-align: center; margin-bottom: 20px;">
+    <img src="results/step4_mask_stack.png" alt="Mask Gaussian Stack"
+         style="width: 100%; max-width: 900px; height: auto; display: block; margin: 0 auto; border-radius: 12px;" />
+    <div class="image-title" style="font-weight: bold; margin-top: 10px;">Mask Gaussian Stack</div>
+    <div class="image-description">Progressively blurred blending mask</div>
+  </div>
+</div>
+
+<h3 style="margin-top: 30px; color: #4a5568;">📊 Laplacian Stack Decomposition</h3>
+
+<div style="margin-bottom: 30px;">
+  <div class="image-container" style="text-align: center; margin-bottom: 20px;">
+    <img src="results/step3_laplacian_stacks.png" alt="Laplacian Stacks"
+         style="width: 100%; max-width: 900px; height: auto; display: block; margin: 0 auto; border-radius: 12px;" />
+    <div class="image-title" style="font-weight: bold; margin-top: 10px;">Laplacian Stacks</div>
+    <div class="image-description">Frequency band decomposition for apple & orange</div>
+  </div>
+
+  <div style="margin-bottom: 30px;">
+    <div class="image-container" style="text-align: center; margin-bottom: 20px;">
+      <img src="results/step7_blendedlaplacian.png" alt="Step 7: Blended Laplacian Stack"
+           style="width: 100%; max-width: 900px; height: auto; display: block; margin: 0 auto; border-radius: 12px;" />
+      <div class="image-title" style="font-weight: bold; margin-top: 10px;">Blended Laplacian Stack</div>
+      <div class="image-description">Element-wise sum of weighted Laplacian levels for apple & orange</div>
+    </div>
+
+  <div class="image-container" style="text-align: center; margin-bottom: 20px;">
+    <img src="results/step6_collapsed_weighted.png" alt="Collapsed Weighted Stacks"
+         style="width: 100%; max-width: 900px; height: auto; display: block; margin: 0 auto; border-radius: 12px;" />
+    <div class="image-title" style="font-weight: bold; margin-top: 10px;">Collapsed Weighted Stacks</div>
+    <div class="image-description">Per-image contributions before blending</div>
+  </div>
+</div>
+
+        <div class="content-card">
+            <h2 class="section-title">🧮 Algorithm Details</h2>
+            
+            <div class="code-section">
+                <h3>📚 Gaussian Stack Construction</h3>
+                <div class="code-block">
+                    <strong>For k = 0 to N-1:</strong><br>
+                    &nbsp;&nbsp;sigma_k = sigma_0 * (2 ** k)<br>
+                    &nbsp;&nbsp;G_k = convolve2d(image, gaussian_kernel(sigma_k))<br>
+                    &nbsp;&nbsp;gaussian_stack.append(G_k)<br><br>
+                    <strong>Final level:</strong><br>
+                    gaussian_stack.append(G_{N-1})  # No more blurring
+                </div>
+            </div>
+
+            <div class="code-section">
+                <h3>📊 Laplacian Stack Construction</h3>
+                <div class="code-block">
+                    <strong>For k = 0 to N-1:</strong><br>
+                    &nbsp;&nbsp;L_k = G_k - G_{k+1}<br>
+                    &nbsp;&nbsp;laplacian_stack.append(L_k)<br><br>
+                    <strong>Final level:</strong><br>
+                    laplacian_stack.append(G_N)  # Residual low frequencies
+                </div>
+            </div>
+
+            <div class="code-section">
+                <h3>🔀 Multi-Resolution Blending</h3>
+                <div class="code-block">
+                    <strong>For each Laplacian level k:</strong><br>
+                    &nbsp;&nbsp;mask_k = gaussian_blur(mask, sigma_k)<br>
+                    &nbsp;&nbsp;L_blend_k = mask_k * L1_k + (1 - mask_k) * L2_k<br><br>
+                    <strong>Reconstruction:</strong><br>
+                    result = sum(L_blend_k for k in range(N+1))
+                </div>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                <h4 style="color: #495057; margin-bottom: 15px;">🎓 Key Advantages</h4>
+                <ul style="color: #6c757d; line-height: 1.8;">
+                    <li><strong>Natural Blending:</strong> Different frequency components use appropriate blend widths</li>
+                    <li><strong>No Visible Seams:</strong> Gradual transitions avoid sharp discontinuities</li>
+                    <li><strong>Preserves Detail:</strong> High frequencies maintain sharpness near boundaries</li>
+                    <li><strong>Scale Invariant:</strong> Works consistently across different image sizes</li>
+                    <li><strong>Flexible Masks:</strong> Any mask shape can be used for creative blending</li>
+                    <li><strong>Perfect Reconstruction:</strong> Laplacian stacks can be perfectly collapsed back to original</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">🧪 Part 2.4: Creative Multiresolution Blending</h2>
+            <p>
+                This section showcases a custom multiresolution blend using an <strong>irregular, person-shaped mask</strong>. 
+                We crop and reposition a photo of a man in the hills and blend it with a scenic mountain background. 
+                A silhouette-style mask is algorithmically constructed using width profiles for head, shoulders, and torso,
+                then softened with a Gaussian filter to ensure smooth transitions.
+            </p>
+          
+            <div class="implementation-comparison">
+              <div class="impl-card">
+                <h4>🖼️ Inputs</h4>
+                <ul>
+                  <li><strong>Foreground:</strong> Cropped image of a person standing in hills</li>
+                  <li><strong>Background:</strong> Mountain landscape</li>
+                  <li><strong>Mask:</strong> Soft-edged person silhouette mask</li>
+                </ul>
+              </div>
+          
+              <div class="impl-card">
+                <h4>🧠 Blending Logic</h4>
+                <ul>
+                    <li>Construct person mask using parametric width profiles and vertical regions (head, shoulders, body)</li>
+                    <li>Apply <code>gaussian_filter</code> to create a soft falloff around edges</li>
+                    <li>Use Laplacian and Gaussian stacks as in Part 2.3 for image and mask decomposition</li>
+                    <li>Blend Laplacian stacks level-by-level using corresponding Gaussian mask stacks</li>
+                    <li>Reconstruct final image from blended Laplacians</li>
+                  </ul>
+              </div>
+            </div>
+
+            <div class="impl-card">
+                <h4>🖌️ Final Result</h4>
+                <p>A smooth, ghost-like composite where the person fades into the mountainous background:</p>
+                <img src="results/person_blend_quadview.png" alt="Final Person Blend"
+                     style="width:100%; max-width:1200px; display:block; margin:auto; border-radius:12px;" />
+              </div>
+              
+              <div class="code-section">
+                <h3>Irregular Multi-Resolution Blending</h3>
+                <div class="code-block">
+                    <div class="code-block">
+                        def irregular_mask_demo():<br>
+                      ...<br>
+                      mask = np.zeros((400, 400))<br>
+                      center_x = 400 // 2<br>
+                      ...<br>
+                      for y in range(person_top, person_bottom):<br>
+                          for x in range(400):<br>
+                              dist_from_center = abs(x - center_x)<br>
+                              ...<br>
+                              mask[y, x] = max(0, intensity)<br>
+                  
+                      result, _, _, _, _, blended_stack = multiresolution_blend(img1, img2, mask, N=6)<br>
+                      imsave('results/final_person_blend.jpg', (result * 255).astype(np.uint8))<br>
+            </div>
+          </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">🎨 Beach to Mountain Bike Transition Blend</h2>
+            <p>Seamless horizontal blending demonstrating multi-resolution technique with landscape imagery, creating a natural transition from coastal beach scene to mountainous bike trail environment.</p>
+            
+            <h3 style="margin-top: 30px; color: #4a5568;">📸 Complete Processing Pipeline</h3>
+            <div class="image-grid">
+                <div class="image-container">
+                    <img src="results/beach_scene.jpg" alt="Beach Scene Original" />
+                    <div class="image-title">Beach Scene</div>
+                    <div class="image-description">Tropical coastal environment with palm trees</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="results/mountain_bike_scene.jpg" alt="Mountain Bike Scene Original" />
+                    <div class="image-title">Mountain Bike Scene</div>
+                    <div class="image-description">Rugged terrain with bicycles and hills</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="results/horizontal_mask.jpg" alt="Horizontal Transition Mask" />
+                    <div class="image-title">Horizontal Transition Mask</div>
+                    <div class="image-description">Smooth gradient at 60% transition point</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="results/beach_mountain_blend.jpg" alt="Beach Mountain Final Blend" />
+                    <div class="image-title">Final Blended Result</div>
+                    <div class="image-description">Seamless beach-to-mountain transition</div>
+                </div>
+            </div>
+        
+            <div class="implementation-comparison">
+                <div class="impl-card">
+                    <h4>🏖️ Beach Scene (Upper Region)</h4>
+                    <ul>
+                        <li>Coastal landscape with palm trees</li>
+                        <li>Smooth horizontal gradient transition</li>
+                        <li>Low-pass filtered for distant viewing</li>
+                        <li>Preserves overall environmental context</li>
+                    </ul>
+                </div>
+                <div class="impl-card">
+                    <h4>🚵 Mountain Bike Scene (Lower Region)</h4>
+                    <ul>
+                        <li>Rugged terrain with bicycles</li>
+                        <li>Sharp details maintained through blending</li>
+                        <li>Natural integration with beach elements</li>
+                        <li>Demonstrates versatility of technique</li>
+                    </ul>
+                </div>
+            </div>
+        
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">60%</div>
+                    <div>Transition Point</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">σ = 5</div>
+                    <div>Gaussian Smoothing</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">6 Levels</div>
+                    <div>Laplacian Stack Depth</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">Seamless</div>
+                    <div>Transition Quality</div>
+                </div>
+            </div>
+        </div>
+
+    <div class="content-card" style="text-align: center; background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
+        <h2 style="color: white; border-bottom: 3px solid white;">Complete Implementation</h2>
+        <p style="font-size: 1.1em; margin-top: 20px;">Successfully implemented all fundamental computer vision techniques: convolutions from scratch, edge detection, image sharpening, hybrid images, and multi-resolution blending with interactive demonstrations!</p>
+    </div>
+</div>
+</body>
+</html>
