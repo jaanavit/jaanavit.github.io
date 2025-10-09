@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A.2-A.4: Image Mosaicing Technical Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+            background: #f5f7fa;
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+        }
+
+        .header {
+            background: #1a1a2e;
+            color: white;
+            padding: 40px 60px;
+            border-bottom: 4px solid #0f3460;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .header .subtitle {
+            font-size: 1.1em;
+            color: #b8c5d6;
+            font-weight: 400;
+        }
+
+        .nav {
+            background: #16213e;
+            padding: 0 60px;
+            border-bottom: 1px solid #0f3460;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav ul {
+            list-style: none;
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav a {
+            display: block;
+            color: #b8c5d6;
+            text-decoration: none;
+            padding: 15px 0;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .nav a:hover {
+            color: white;
+            border-bottom-color: #0f3460;
+        }
+
+        .content {
+            padding: 40px 60px;
+        }
+
+        .section {
+            margin-bottom: 60px;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 25px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e8eef5;
+        }
+
+        .subsection-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #16213e;
+            margin: 30px 0 15px 0;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e8eef5;
+            border-radius: 8px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .matrix-display {
+            background: #f8fafb;
+            border: 1px solid #d9e2ec;
+            border-radius: 6px;
+            padding: 30px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            max-width: 550px;
+            margin: 20px auto;
+        }
+
+        .matrix-cell {
+            background: white;
+            padding: 18px;
+            text-align: center;
+            font-size: 1.05em;
+            font-weight: 600;
+            color: #1a1a2e;
+            border: 1px solid #d9e2ec;
+            border-radius: 4px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .stat-box {
+            background: #f8fafb;
+            border-left: 4px solid #0f3460;
+            padding: 25px;
+            border-radius: 4px;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin: 8px 0;
+        }
+
+        .stat-label {
+            font-size: 0.95em;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 0.95em;
+        }
+
+        table thead {
+            background: #16213e;
+            color: white;
+        }
+
+        table th {
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e8eef5;
+        }
+
+        table tbody tr:hover {
+            background: #f8fafb;
+        }
+
+        .point-id {
+            font-weight: 600;
+            color: #0f3460;
+        }
+
+        .error-low { color: #059669; font-weight: 600; }
+        .error-medium { color: #d97706; font-weight: 600; }
+        .error-high { color: #dc2626; font-weight: 600; }
+
+        .image-container {
+            margin: 30px 0;
+            border: 1px solid #e8eef5;
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+        }
+
+        .image-container img {
+            width: 100%;
+            display: block;
+        }
+
+        .image-caption {
+            padding: 15px 20px;
+            background: #f8fafb;
+            color: #64748b;
+            font-size: 0.9em;
+            border-top: 1px solid #e8eef5;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 30px;
+            margin: 25px 0;
+        }
+
+        .formula {
+            background: #f8fafb;
+            border-left: 4px solid #0f3460;
+            padding: 20px 25px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 1.05em;
+            border-radius: 4px;
+        }
+
+        .info-box {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 20px 25px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .file-list {
+            list-style: none;
+            margin: 20px 0;
+        }
+
+        .file-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid #e8eef5;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .file-list li:last-child {
+            border-bottom: none;
+        }
+
+        .file-icon {
+            width: 24px;
+            height: 24px;
+            background: #0f3460;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.7em;
+            font-weight: 700;
+        }
+
+        .download-btn {
+            background: #0f3460;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-left: auto;
+        }
+
+        .download-btn:hover {
+            background: #1a1a2e;
+        }
+
+        .methodology {
+            background: #f8fafb;
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid #e8eef5;
+        }
+
+        .methodology ol {
+            margin-left: 20px;
+            margin-top: 15px;
+        }
+
+        .methodology li {
+            margin: 12px 0;
+            padding-left: 10px;
+        }
+
+        .deliverable-section {
+            background: #f8fafb;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+            border: 1px solid #e8eef5;
+        }
+
+        .deliverable-section h4 {
+            color: #16213e;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .deliverable-section p {
+            color: #64748b;
+            margin-bottom: 10px;
+            line-height: 1.7;
+        }
+
+        @media (max-width: 768px) {
+            .header, .content, .nav {
+                padding: 20px 30px;
+            }
+
+            .section-title {
+                font-size: 1.5em;
+            }
+
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 0.85em;
+            }
+
+            table th, table td {
+                padding: 8px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Image Mosaicing Project</h1>
+            <p class="subtitle">A.2: Homography Recovery | A.3: Image Warping | A.4: Mosaic Blending</p>
+        </div>
+
+        <nav class="nav">
+            <ul>
+                <li><a href="#a2-overview">A.2: Homography</a></li>
+                <li><a href="#a3-warping">A.3: Warping</a></li>
+                <li><a href="#a4-mosaic">A.4: Mosaic</a></li>
+            </ul>
+        </nav>
+
+        <div class="content">
+            
+            <!-- A.2 SECTION -->
+            <section id="a2-overview" class="section">
+                <h2 class="section-title">A.2: Recover Homographies</h2>
+                <div class="card">
+                    <p style="font-size: 1.05em; margin-bottom: 15px;">
+                        This section presents the computation and verification of homography matrices for aligning multiple images 
+                        of a library interior. The homography H is a 3×3 matrix that relates corresponding points between two images 
+                        through a projective transformation.
+                    </p>
+                    <div class="formula">
+                        <strong>Transformation Equation:</strong> p' = H · p<br>
+                        where p = [x, y, 1]ᵀ and p' = [x', y', 1]ᵀ are homogeneous coordinates
+                    </div>
+                </div>
+
+                <h3 class="subsection-title">Methodology</h3>
+                <div class="methodology">
+                    <h3 style="color: #1a1a2e; margin-bottom: 15px;">System of Linear Equations (Ah = b)</h3>
+                    <p>Each point correspondence (x, y) → (x', y') provides two equations:</p>
+                    <div class="formula" style="margin: 15px 0;">
+                        Equation 1: h₁₁·x + h₁₂·y + h₁₃ - h₃₁·x·x' - h₃₂·y·x' = x'<br>
+                        Equation 2: h₂₁·x + h₂₂·y + h₂₃ - h₃₁·x·y' - h₃₂·y·y' = y'
+                    </div>
+                    
+                    <h3 style="color: #1a1a2e; margin: 25px 0 15px 0;">Solution Method</h3>
+                    <ol>
+                        <li><strong>Point Selection:</strong> Select n ≥ 4 corresponding points between image pairs using interactive GUI</li>
+                        <li><strong>System Construction:</strong> Build matrix A (2n × 9) where each row represents one equation</li>
+                        <li><strong>SVD Decomposition:</strong> Compute A = U·Σ·Vᵀ</li>
+                        <li><strong>Extract Solution:</strong> The homography vector h is the last column of V (null space of A)</li>
+                        <li><strong>Normalization:</strong> Reshape h into 3×3 matrix H and normalize so H₃₃ = 1</li>
+                    </ol>
+                </div>
+
+                <h3 class="subsection-title">Recovered Homography Matrix H₁₂</h3>
+                <div class="matrix-display">
+                    <div style="text-align: center; margin-bottom: 15px; color: #64748b; font-size: 0.9em;">
+                        H₁₂: doe1.png → doe2.png (Image 1 to Image 2)
+                    </div>
+                    <div class="matrix-grid">
+                        <div class="matrix-cell">0.983699</div>
+                        <div class="matrix-cell">0.014455</div>
+                        <div class="matrix-cell">-280.225</div>
+                        
+                        <div class="matrix-cell">-0.008591</div>
+                        <div class="matrix-cell">0.992651</div>
+                        <div class="matrix-cell">8.469</div>
+                        
+                        <div class="matrix-cell">-0.000011</div>
+                        <div class="matrix-cell">0.000007</div>
+                        <div class="matrix-cell">1.000000</div>
+                    </div>
+                </div>
+
+                <h3 class="subsection-title">System of Equations (Ah = b form)</h3>
+<div class="info-box">
+    <strong>Linear System Construction:</strong> Each point correspondence generates two equations. With 15 point pairs, 
+    we construct a system of 30 equations . The system is solved using least squares 
+    to find the optimal homography matrix that minimizes reprojection error across all points.
+</div>
+
+<div class="card">
+    <div style="font-family: 'Courier New', monospace; font-size: 0.9em; line-height: 1.6;">
+        <div style="margin-bottom: 15px; color: #64748b;">
+            Where <strong>h</strong> = [h₁₁, h₁₂, h₁₃, h₂₁, h₂₂, h₂₃, h₃₁, h₃₂, h₃₃]ᵀ<br>
+            And we set h₃₃ = 1 for scaling
+        </div>
+        
+        <div style="background: #f8fafb; padding: 20px; border-radius: 4px; margin-bottom: 15px;">
+            <strong style="color: #0f3460;">Point 1:</strong> (933.7, 637.6) → (649.7, 638.5)
+            <div style="margin-left: 20px; margin-top: 8px; color: #334155;">
+                Equation 1: 933.7·h₁₁ + 637.6·h₁₂ + h₁₃ - 606641.5·h₃₁ - 414243.9·h₃₂ = 649.7<br>
+                Equation 2: 933.7·h₂₁ + 637.6·h₂₂ + h₂₃ - 596193.9·h₃₁ - 407109.7·h₃₂ = 638.5
+            </div>
+        </div>
+        
+        <div style="background: #f8fafb; padding: 20px; border-radius: 4px; margin-bottom: 15px;">
+            <strong style="color: #0f3460;">Point 2:</strong> (1225.3, 866.4) → (959.5, 855.8)
+            <div style="margin-left: 20px; margin-top: 8px; color: #334155;">
+                Equation 1: 1225.3·h₁₁ + 866.4·h₁₂ + h₁₃ - 1175679.0·h₃₁ - 831301.7·h₃₂ = 959.5<br>
+                Equation 2: 1225.3·h₂₁ + 866.4·h₂₂ + h₂₃ - 1048603.8·h₃₁ - 741449.1·h₃₂ = 855.8
+            </div>
+        </div>
+        
+        <div style="background: #f8fafb; padding: 20px; border-radius: 4px; margin-bottom: 15px;">
+            <strong style="color: #0f3460;">Point 3:</strong> (1603.3, 853.8) → (1289.0, 860.0)
+            <div style="margin-left: 20px; margin-top: 8px; color: #334155;">
+                Equation 1: 1603.3·h₁₁ + 853.8·h₁₂ + h₁₃ - 2066634.5·h₃₁ - 1100530.7·h₃₂ = 1289.0<br>
+                Equation 2: 1603.3·h₂₁ + 853.8·h₂₂ + h₂₃ - 1378897.1·h₃₁ - 734294.6·h₃₂ = 860.0
+            </div>
+        </div>
+        
+        <div style="text-align: center; padding: 15px; color: #64748b; font-style: italic;">
+            ... and 12 more point(s)<br>
+            <strong style="color: #0f3460; font-size: 1.1em; margin-top: 8px; display: inline-block;">Total: 30 equations</strong>
+        </div>
+    </div>
+</div>
+
+<h3 class="subsection-title">Point Correspondence Visualization</h3>
+    <div class="image-container">
+        <img src="correspondences_visualization.png" alt="Point correspondences between images">
+        <div class="image-caption">
+            Figure 1: Visualization of 15 corresponding points selected between Image 1 (left) and Image 2 (right). 
+            Matching numbers indicate the same physical feature in both images.
+        </div>
+    </div>
+
+
+                <h3 class="subsection-title">Point Correspondence Data</h3>
+<div class="grid-2">
+    <div class="card">
+        <h3 style="color: #1a1a2e; margin-bottom: 20px;">Image 1 Points (doe1.png)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Point</th>
+                    <th>X Coordinate</th>
+                    <th>Y Coordinate</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td class="point-id">1</td><td>933.70</td><td>637.60</td></tr>
+                <tr><td class="point-id">2</td><td>1225.30</td><td>866.40</td></tr>
+                <tr><td class="point-id">3</td><td>1603.30</td><td>853.80</td></tr>
+                <tr><td class="point-id">4</td><td>1604.70</td><td>965.40</td></tr>
+                <tr><td class="point-id">5</td><td>1239.20</td><td>976.60</td></tr>
+                <tr><td class="point-id">6</td><td>1462.40</td><td>682.20</td></tr>
+                <tr><td class="point-id">7</td><td>1482.00</td><td>612.50</td></tr>
+                <tr><td class="point-id">8</td><td>1289.40</td><td>510.60</td></tr>
+                <tr><td class="point-id">9</td><td>1262.90</td><td>433.90</td></tr>
+                <tr><td class="point-id">10</td><td>1131.80</td><td>1319.80</td></tr>
+                <tr><td class="point-id">11</td><td>1894.90</td><td>1315.60</td></tr>
+                <tr><td class="point-id">12</td><td>1242.00</td><td>1213.70</td></tr>
+                <tr><td class="point-id">13</td><td>787.20</td><td>918.00</td></tr>
+                <tr><td class="point-id">14</td><td>651.90</td><td>415.80</td></tr>
+                <tr><td class="point-id">15</td><td>644.90</td><td>902.60</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h3 style="color: #1a1a2e; margin-bottom: 20px;">Image 2 Points (doe2.png)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Point</th>
+                    <th>X Coordinate</th>
+                    <th>Y Coordinate</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td class="point-id">1</td><td>649.72</td><td>638.53</td></tr>
+                <tr><td class="point-id">2</td><td>959.53</td><td>855.82</td></tr>
+                <tr><td class="point-id">3</td><td>1288.97</td><td>860.02</td></tr>
+                <tr><td class="point-id">4</td><td>1297.38</td><td>972.17</td></tr>
+                <tr><td class="point-id">5</td><td>948.31</td><td>967.97</td></tr>
+                <tr><td class="point-id">6</td><td>1157.19</td><td>696.01</td></tr>
+                <tr><td class="point-id">7</td><td>1195.04</td><td>623.11</td></tr>
+                <tr><td class="point-id">8</td><td>1025.42</td><td>499.74</td></tr>
+                <tr><td class="point-id">9</td><td>997.38</td><td>446.47</td></tr>
+                <tr><td class="point-id">10</td><td>829.16</td><td>1331.05</td></tr>
+                <tr><td class="point-id">11</td><td>1516.07</td><td>1284.79</td></tr>
+                <tr><td class="point-id">12</td><td>948.31</td><td>1200.68</td></tr>
+                <tr><td class="point-id">13</td><td>481.49</td><td>911.89</td></tr>
+                <tr><td class="point-id">14</td><td>352.52</td><td>366.57</td></tr>
+                <tr><td class="point-id">15</td><td>323.08</td><td>896.47</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+    
+
+            </section>
+
+            <!-- A.3 SECTION -->
+            <section id="a3-warping" class="section">
+                <h2 class="section-title">A.3: Warp the Images</h2>
+                
+                <div class="card">
+                    <p style="font-size: 1.05em; margin-bottom: 15px;">
+                        This section demonstrates image warping using inverse homography transformation with two interpolation methods: 
+                        nearest neighbor and bilinear interpolation. We test the implementation through rectification of rectangular objects 
+                        photographed at oblique angles.
+                    </p>
+                </div>
+
+                <h3 class="subsection-title">Implementation Details</h3>
+                <div class="methodology">
+                    <h4>Inverse Warping Algorithm</h4>
+                    <p style="margin: 15px 0;">To avoid holes in the output image, we use inverse warping:</p>
+                    <ol>
+                        <li>For each pixel (x', y') in the output image</li>
+                        <li>Apply H⁻¹ to find source location (x, y) = H⁻¹ · (x', y', 1)</li>
+                        <li>Use interpolation to sample the source image at (x, y)</li>
+                        <li>Write interpolated value to output pixel (x', y')</li>
+                    </ol>
+
+                    <h4 style="margin-top: 25px;">Interpolation Methods</h4>
+                    <p style="margin: 15px 0;"><strong>Nearest Neighbor:</strong> Round (x, y) to nearest integer coordinates and copy that pixel value</p>
+                    <p style="margin: 15px 0;"><strong>Bilinear Interpolation:</strong> Compute weighted average of the four neighboring pixels using distance-based weights</p>
+                    <div class="formula" style="margin: 15px 0;">
+                        I(x,y) = I₀₀(1-wx)(1-wy) + I₁₀·wx(1-wy) + I₀₁(1-wx)·wy + I₁₁·wx·wy
+                    </div>
+                </div>
+
+                <h3 class="subsection-title">Rectification Example 1: Door</h3>
+                <div class="deliverable-section">
+                    <p><strong>Objective:</strong> Remove perspective distortion from a door photographed at an angle</p>
+                    <p><strong>Method:</strong> Map the four corners of the trapezoidal door to a perfect rectangle with standard door proportions (7:3 aspect ratio)</p>
+                    <p><strong>Result:</strong> Frontal view as if the camera were perpendicular to the door surface</p>
+                </div>
+
+                <div class="image-container">
+                    <img src="door_rectification_result.png" alt="Door rectification results">
+                    <div class="image-caption">
+                        Figure 2: Door rectification showing (left) original image with selected quadrilateral, 
+                        (center) nearest neighbor result, (right) bilinear interpolation result.
+                    </div>
+                </div>
+
+                <h3 class="subsection-title">Rectification Example 2: Sign/Poster</h3>
+                <div class="deliverable-section">
+                    <p><strong>Objective:</strong> Rectify a rectangular sign or poster viewed from an oblique angle</p>
+                    <p><strong>Method:</strong> User selects four corners of the sign, system computes homography to map to rectangle</p>
+                    <p><strong>Result:</strong> Straight-on view with preserved aspect ratio, readable text</p>
+                </div>
+
+                <div class="image-container">
+                    <img src="sign_rectification_result.png" alt="Sign rectification results">
+                    <div class="image-caption">
+                        Figure 3: Sign/poster rectification demonstrating perspective removal. The rectified image shows 
+                        parallel edges and preserved right angles.
+                    </div>
+                </div>
+
+            <div class="content">
+                <!-- A.4 SECTION -->
+                <section id="a4-mosaic" class="section">
+                    <h2 class="section-title">A.4: Blend the Images into a Mosaic</h2>
+                    
+                    <div class="card">
+                        <h3 style="color: #1a1a2e; margin-bottom: 20px;">Implementation Overview</h3>
+                        <p style="font-size: 1.05em; margin-bottom: 15px;">
+                            This section demonstrates the creation of seamless panoramic mosaics by warping multiple images to a common 
+                            reference frame and blending them using two approaches: <strong>simple weighted averaging</strong> and 
+                            <strong>Laplacian pyramid blending</strong>. Three image pairs were processed: library interior (doe1+doe2), 
+                            food photography (mochi1+mochi2), and clothing display (clothes1+clothes2).
+                        </p>
+                        
+                        <h4 style="color: #16213e; margin: 25px 0 15px 0;">My Blending Procedure</h4>
+                        <div class="methodology">
+                            <p><strong>Step 1: Homography Computation</strong></p>
+                            <ul style="margin-left: 25px; margin-top: 10px;">
+                                <li>Selected 6-9 corresponding points between each image pair using interactive GUI</li>
+                                <li>Computed homography matrix H using SVD-based least squares (A.2 implementation)</li>
+                                <li>One image designated as reference frame (stays unwarped), other warps to align</li>
+                            </ul>
+                            
+                            <p style="margin-top: 20px;"><strong>Step 2: Mosaic Size Determination (One-Shot Approach)</strong></p>
+                            <ul style="margin-left: 25px; margin-top: 10px;">
+                                <li>Transformed all four corners of each image through its homography</li>
+                                <li>Computed bounding box containing all transformed corners</li>
+                                <li>Determined final mosaic dimensions [x_min:x_max, y_min:y_max]</li>
+                            </ul>
+                            
+                            <p style="margin-top: 20px;"><strong>Step 3: Image Warping</strong></p>
+                            <ul style="margin-left: 25px; margin-top: 10px;">
+                                <li>Warped first image using computed homography and bilinear interpolation (A.3 implementation)</li>
+                                <li>Left reference image unwarped (identity transformation)</li>
+                                <li>Applied translation offsets to position images correctly in mosaic coordinates</li>
+                            </ul>
+                            
+                            <p style="margin-top: 20px;"><strong>Step 4: Weight Map Creation (Alpha Channels)</strong></p>
+                            <ul style="margin-left: 25px; margin-top: 10px;">
+                                <li>Created distance-based weight maps using cv2.distanceTransform</li>
+                                <li>Weight = 1.0 at image center, falls off to 0.0 at edges</li>
+                                <li>Warped weight maps alongside images for proper alignment</li>
+                            </ul>
+                            
+                            <p style="margin-top: 20px;"><strong>Step 5A: Simple Weighted Averaging</strong></p>
+                            <ul style="margin-left: 25px; margin-top: 10px;">
+                                <li>For each pixel: pixel_value = (im1 × w1 + im2 × w2) / (w1 + w2)</li>
+                                <li>Single-scale blending across all frequencies</li>
+                                <li>Fast but may show ghosting in high-frequency details</li>
+                            </ul>
+                            
+                            <p style="margin-top: 20px;"><strong>Step 5B: Laplacian Pyramid Blending </strong></p>
+                            <ul style="margin-left: 25px; margin-top: 10px;">
+                                <li>Built 6-level Laplacian pyramids for both warped images</li>
+                                <li>Built 6-level Gaussian pyramids for weight masks</li>
+                                <li>Blended images independently at each pyramid level using weights</li>
+                                <li>Reconstructed final mosaic by upsampling and adding Laplacian details</li>
+                                <li>Multi-scale approach: high frequencies use sharper transitions, low frequencies use smoother blending</li>
+                            </ul>
+                        </div>
+                    </div>
+    
+                    <!-- MOSAIC 1: LIBRARY -->
+                    <h3 class="subsection-title">Mosaic 1: Library Panorama (doe1 + doe2)</h3>
+                    <div class="image-container">
+                        <img src="library_visualization.png" alt="Library mosaic - source images and result">
+                        <div class="image-caption">
+                            Figure 4: Library panorama showing (top) source images doe1 and doe2, (bottom) simple weighted averagemosaic
+                        </div>
+                    </div>
+    
+                    <div class="image-container">
+                        <img src="library_comparison.png" alt="Library blending method comparison">
+                        <div class="image-caption">
+                            Figure 5: Blending method comparison for library panorama. Top row: source images. Bottom row: simple weighted averaging (left) vs Laplacian pyramid (right). 
+                        </div>
+                    </div>
+    
+    
+                    <!-- MOSAIC 2: MOCHI -->
+                    <h3 class="subsection-title">Mosaic 2: Mochi Food Photography (mochi1 + mochi2)</h3>
+                    <div class="image-container">
+                        <img src="mochi_visualization.png" alt="Mochi mosaic - source images and result">
+                        <div class="image-caption">
+                            Figure 7: Mochi panorama showing (top) source images mochi1 and mochi2, (bottom) simple weighted average mosaic
+                        </div>
+                    </div>
+    
+                    <div class="image-container">
+                        <img src="mochi_comparison.png" alt="Mochi blending method comparison">
+                        <div class="image-caption">
+                            Figure 8: Blending method comparison for mochi panorama. Laplacian pyramid blending (right). Simple averaging (left).
+                        </div>
+                    </div>
+    
+                    <!-- MOSAIC 3: CLOTHES -->
+                    <h3 class="subsection-title">Mosaic 3: Clothing Display (clothes1 + clothes2)</h3>
+                    <div class="image-container">
+                        <img src="clothes_visualization.png" alt="Clothes mosaic - source images and result">
+                        <div class="image-caption">
+                            Figure 10: Clothing display panorama showing (top) source images clothes1 and clothes2, (bottom) simple weighted average mosaic
+                        </div>
+                    </div>
+    
+                    <div class="image-container">
+                        <img src="clothes_comparison.png" alt="Clothes blending method comparison">
+                        <div class="image-caption">
+                            Figure 11: Blending method comparison for clothing display. Laplacian pyramid approach (right), simple averaging (left).
+                        </div>
+                    </div>
