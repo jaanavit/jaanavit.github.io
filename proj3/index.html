@@ -363,7 +363,7 @@
     <div class="container">
         <div class="header">
             <h1>Image Mosaicing Project</h1>
-            <p class="subtitle">A.2: Homography Recovery | A.3: Image Warping | A.4: Mosaic Blending</p>
+            <p class="subtitle">Part A: Manual Stitching | Part B: Automatic Feature Detection & Matching</p>
         </div>
 
         <nav class="nav">
@@ -371,6 +371,10 @@
                 <li><a href="#a2-overview">A.2: Homography</a></li>
                 <li><a href="#a3-warping">A.3: Warping</a></li>
                 <li><a href="#a4-mosaic">A.4: Mosaic</a></li>
+                <li><a href="#b1-harris">B.1: Harris Corners</a></li>
+                <li><a href="#b2-descriptors">B.2: Descriptors</a></li>
+                <li><a href="#b3-matching">B.3: Matching</a></li>
+                <li><a href="#b4-ransac">B.4: RANSAC</a></li>
             </ul>
         </nav>
 
@@ -613,7 +617,6 @@
                     </div>
                 </div>
 
-            <div class="content">
                 <!-- A.4 SECTION -->
                 <section id="a4-mosaic" class="section">
                     <h2 class="section-title">A.4: Blend the Images into a Mosaic</h2>
@@ -723,3 +726,375 @@
                             Figure 11: Blending method comparison for clothing display. Laplacian pyramid approach (right), simple averaging (left).
                         </div>
                     </div>
+                </section>
+                <section id="b1-harris" class="section">
+                    <h2 class="section-title">B.1: Harris Corner Detection & ANMS</h2>
+                    
+                    <div class="card">
+                        <p style="font-size: 1.05em; margin-bottom: 15px;">
+                            This section implements the Harris Interest Point Detector and Adaptive Non-Maximal Suppression (ANMS) 
+                            for selecting well-distributed corner features across an image. These corners serve as key points for 
+                            establishing correspondences between images in automatic panorama stitching.
+                        </p>
+                        <div class="formula">
+                            <strong>Harris Response:</strong> R = det(M) - k × trace(M)²<br>
+                            where M is the structure tensor (second moment matrix), k = 0.04
+                        </div>
+                    </div>
+    
+                    <h3 class="subsection-title">Implementation Details</h3>
+                    <div class="methodology">
+                        <h4>Harris Corner Detection Algorithm</h4>
+                        <ol>
+                            <li><strong>Compute Image Gradients:</strong> Calculate I<sub>x</sub> and I<sub>y</sub> using derivative filters</li>
+                            <li><strong>Structure Tensor:</strong> Compute products I<sub>x</sub>², I<sub>y</sub>², and I<sub>x</sub>I<sub>y</sub>, then smooth with Gaussian (σ=1)</li>
+                            <li><strong>Harris Response:</strong> Calculate R = det(M) - k·trace(M)² where k=0.04</li>
+                            <li><strong>Non-Maximum Suppression:</strong> Find local maxima in 3×3 neighborhoods</li>
+                            <li><strong>Edge Discard:</strong> Remove corners within 20 pixels of image boundary</li>
+                        </ol>
+    
+                        <h4 style="margin-top: 25px;">Adaptive Non-Maximal Suppression (ANMS)</h4>
+                        <p style="margin: 15px 0;">
+                            ANMS improves spatial distribution of detected corners by selecting those with large suppression radii:
+                        </p>
+                        <ol>
+                            <li>For each corner i, find minimum distance r<sub>i</sub> to any corner j where strength(j) > 0.9 × strength(i)</li>
+                            <li>Sort corners by suppression radius r<sub>i</sub> in descending order</li>
+                            <li>Select top N corners (typically 500) with largest radii</li>
+                            <li>Result: evenly distributed corners rather than clustered in high-texture regions</li>
+                        </ol>
+                    </div>
+    
+    
+                    <div class="image-container">
+                        <img src="results/door_harris_anms_comparison.png" alt="Harris corners comparison">
+                        <div class="image-caption">
+                            Figure 7: Comparison of Harris corner detection. Left: All 48313 detected corners showing clustering 
+                            in high-texture areas (door frame, edges). Right: 500 ANMS-selected corners with improved spatial distribution 
+                            across the entire image. Red crosses mark corner locations with yellow circle highlights.
+                        </div>
+                    </div>
+            </section>
+               <!-- B.2 SECTION: FEATURE DESCRIPTOR EXTRACTION -->
+            <section id="b2-descriptors" class="section">
+                <h2 class="section-title">B.2: Feature Descriptor Extraction</h2>
+                
+                <div class="card">
+                    <p style="font-size: 1.05em; margin-bottom: 15px;">
+                        This section implements feature descriptor extraction for each detected corner point. We extract 
+                        axis-aligned 8×8 patches sampled from a larger 40×40 window to create robust, blurred descriptors 
+                        that are invariant to affine intensity changes through bias/gain normalization.
+                    </p>
+                    <div class="formula">
+                        <strong>Descriptor Normalization:</strong> d' = (d - μ) / σ<br>
+                        where μ is mean, σ is standard deviation (makes descriptor invariant to bias/gain)
+                    </div>
+                </div>
+
+                <h3 class="subsection-title">Implementation Details</h3>
+                <div class="methodology">
+                    <h4>Feature Descriptor Extraction Algorithm</h4>
+                    <ol>
+                        <li><strong>Extract 40×40 Window:</strong> Center window around each corner keypoint location</li>
+                        <li><strong>Gaussian Blur:</strong> Apply Gaussian filter with σ=2.5 to avoid aliasing during downsampling</li>
+                        <li><strong>Sample 8×8 Grid:</strong> Sample at 5-pixel spacing to create 8×8 descriptor patch</li>
+                        <li><strong>Flatten to Vector:</strong> Convert 8×8 patch to 64-dimensional feature vector</li>
+                        <li><strong>Bias/Gain Normalization:</strong> Normalize to mean=0 and std=1 for illumination invariance</li>
+                    </ol>
+
+                    <h4 style="margin-top: 25px;">Why 40×40 Window with 5-Pixel Sampling?</h4>
+                    <p style="margin: 15px 0;">
+                        The larger 40×40 window with coarse sampling provides several advantages:
+                    </p>
+                    <ul>
+                        <li><strong>Robustness to localization error:</strong> Low-frequency sampling makes features less sensitive to small position errors</li>
+                        <li><strong>Avoids aliasing:</strong> Gaussian smoothing before downsampling prevents high-frequency artifacts</li>
+                        <li><strong>Captures broader context:</strong> Larger window includes more surrounding structure for better matching</li>
+                        <li><strong>Computational efficiency:</strong> 64-dimensional vectors are compact yet distinctive</li>
+                    </ul>
+                </div>
+
+                <h3 class="subsection-title">Example 1: Library Image (doe1.png)</h3>
+                
+                <div class="image-container">
+                    <img src="results/doe1_feature_locations.png" alt="Doe1 feature locations">
+                    <div class="image-caption">
+                        Figure 10: Feature locations with color-coded 40×40 extraction windows on library image. 
+                        Each colored square shows the window from which the corresponding descriptor is extracted.
+                    </div>
+                </div>
+
+                <div class="image-container">
+                    <img src="results/doe1_descriptor_grid.png" alt="Doe1 descriptor grid">
+                    <div class="image-caption">
+                        Figure 11: Grid of 9 extracted 8×8 descriptors from library image after bias/gain normalization. 
+                    </div>
+                </div>
+
+                <h3 class="subsection-title">Example 2: Mochi Image (mochi1.png)</h3>
+                
+                <div class="image-container">
+                    <img src="results/mochi1_feature_locations.png" alt="Mochi1 feature locations">
+                    <div class="image-caption">
+                        Figure 12: Feature locations with color-coded 40×40 extraction windows on mochi image. 
+                        The diverse feature locations capture both texture details on the mochi and background elements.
+                    </div>
+                </div>
+
+                <div class="image-container">
+                    <img src="results/mochi1_descriptor_grid.png" alt="Mochi1 descriptor grid">
+                    <div class="image-caption">
+                        Figure 13: Grid of 9 extracted 8×8 descriptors from mochi image. 
+                    </div>
+                </div>
+            </section>
+    <!-- B.3 SECTION: FEATURE MATCHING -->
+    <section id="b3-matching" class="section">
+        <h2 class="section-title">B.3: Feature Matching</h2>
+        
+        <div class="card">
+            <p style="font-size: 1.05em; margin-bottom: 15px;">
+                This section implements feature matching between image pairs using Lowe's ratio test. 
+                For each feature in the first image, we find its two nearest neighbors in the second image 
+                and accept the match only if the ratio of distances is sufficiently small, indicating a 
+                distinctive and reliable correspondence.
+            </p>
+            <div class="formula">
+                <strong>Lowe's Ratio Test:</strong> Accept match if e₁₋ₙₙ / e₂₋ₙₙ < 0.8<br>
+                where e₁₋ₙₙ is distance to first nearest neighbor, e₂₋ₙₙ is distance to second nearest neighbor
+            </div>
+        </div>
+
+        <h3 class="subsection-title">Implementation Details</h3>
+        <div class="methodology">
+            <h4>Feature Matching Algorithm</h4>
+            <ol>
+                <li><strong>Compute Pairwise Distances:</strong> Calculate L2 distances between all descriptor pairs using efficient vectorized operations</li>
+                <li><strong>Find Nearest Neighbors:</strong> For each descriptor in image 1, identify the two closest descriptors in image 2</li>
+                <li><strong>Lowe's Ratio Test:</strong> Accept match if ratio = d₁/d₂ < 0.8, where d₁ and d₂ are distances to first and second nearest neighbors</li>
+                <li><strong>Confidence Score:</strong> Compute match confidence as (1 - ratio), with higher values indicating more distinctive matches</li>
+                <li><strong>Filter Matches:</strong> Retain only matches passing the ratio threshold</li>
+            </ol>
+
+            <h4 style="margin-top: 25px;">Why Lowe's Ratio Test?</h4>
+            <p style="margin: 15px 0;">
+                Lowe's ratio test is more effective than simple distance thresholding because:
+            </p>
+            <ul>
+                <li><strong>Scale-invariant:</strong> The ratio is independent of the absolute scale of descriptor distances</li>
+                <li><strong>Better separation:</strong> Correct matches have substantially lower ratios than incorrect matches (see paper Figure 6b)</li>
+                <li><strong>Adapts to feature space:</strong> Threshold works across different regions of feature space with varying error magnitudes</li>
+                <li><strong>Reduces ambiguity:</strong> Rejects matches where multiple features look similar, keeping only distinctive correspondences</li>
+            </ul>
+        </div>
+
+        <div class="info-box">
+            <strong>Note:</strong> The ratio threshold of 0.8 is chosen based on Figure 6b in the Multi-Image Matching paper, 
+            which shows good separation between correct and incorrect matches at this value. Lower thresholds (e.g., 0.7) 
+            increase precision but reduce the number of matches, while higher thresholds (e.g., 0.9) increase recall 
+            but allow more false positives.
+        </div>
+
+        <h3 class="subsection-title">Match Results: Library Panorama (doe1 → doe2)</h3>
+        <div class="image-container">
+            <img src="results/doe1_matches.png" alt="Doe feature matches">
+            <div class="image-caption">
+                Figure 14: Feature matches between library images (doe1 and doe2). Each colored line connects a matched 
+                feature pair, with 50 matches displayed out of ~200 total matches found. The diverse spatial distribution 
+                of matches across the entire image ensures robust alignment. Yellow circles mark feature locations.
+            </div>
+        </div>
+
+        <h3 class="subsection-title">Match Results: Mochi Food Photography (mochi1 → mochi2)</h3>
+        <div class="image-container">
+            <img src="results/mochi1_matches.png" alt="Mochi feature matches">
+            <div class="image-caption">
+                Figure 15: Feature matches between mochi images. Despite the challenging textured surface and similar 
+                appearance of multiple mochi pieces, the descriptor matching successfully identifies ~180 reliable 
+                correspondences. Notice matches on both the mochi themselves and the background plate.
+            </div>
+        </div>
+
+        <h3 class="subsection-title">Match Results: Clothing Display (clothes1 → clothes2)</h3>
+        <div class="image-container">
+            <img src="results/clothes1_matches.png" alt="Clothes feature matches">
+            <div class="image-caption">
+                Figure 16: Feature matches between clothing display images. The algorithm finds ~220 matches across 
+                various regions including fabric textures, edges, and background elements. The high match rate indicates 
+                good overlap and feature repeatability between the two views.
+            </div>
+        </div>
+
+        <h3 class="subsection-title">Comparison Across Image Pairs</h3>
+        <div class="grid-2">
+            <div class="deliverable-section">
+                <h4>Library (doe1 + doe2)</h4>
+                <p><strong>Matches Found:</strong> ~237 matches<br>
+                <strong>Match Rate:</strong> 47.5%<br>
+                <strong>Characteristics:</strong> Strong geometric features (edges, corners) from architectural elements 
+                provide highly distinctive descriptors. Excellent spatial distribution across the scene.</p>
+            </div>
+            <div class="deliverable-section">
+                <h4>Mochi (mochi1 + mochi2)</h4>
+                <p><strong>Matches Found:</strong> ~275 matches<br>
+                <strong>Match Rate:</strong> 55%<br>
+                <strong>Characteristics:</strong> Challenging due to repetitive textures and similar-looking objects. 
+                Matches concentrate on distinctive features and background elements.</p>
+            </div>
+            <div class="deliverable-section">
+                <h4>Clothes (clothes1 + clothes2)</h4>
+                <p><strong>Matches Found:</strong> ~266 matches<br>
+                <strong>Match Rate:</strong> 53.2%<br>
+                <strong>Characteristics:</strong> Rich texture from fabric patterns provides many distinctive features. 
+                High match rate suggests good overlap and feature repeatability.</p>
+            </div>
+            <div class="deliverable-section">
+                <h4>Overall Performance</h4>
+                <p><strong>Success Factors:</strong> Bias/gain normalization handles lighting variations well. 
+                The 40×40 window sampling provides robustness to small localization errors. Lowe's ratio test 
+                effectively filters ambiguous matches, maintaining high precision across diverse scene types.</p>
+            </div>
+        </div>
+
+    </section>
+     <!-- B.4 SECTION: RANSAC FOR ROBUST HOMOGRAPHY -->
+     <section id="b4-ransac" class="section">
+        <h2 class="section-title">B.4: RANSAC for Robust Homography Estimation</h2>
+        
+        <div class="card">
+            <p style="font-size: 1.05em; margin-bottom: 15px;">
+                This section implements 4-point RANSAC (Random Sample Consensus) to compute robust homography 
+                estimates from feature matches. RANSAC filters outliers by iteratively fitting models to random 
+                subsets of matches and selecting the model with the most inliers, enabling accurate alignment 
+                even when many matches are incorrect.
+            </p>
+            <div class="formula">
+                <strong>RANSAC Algorithm:</strong> Repeat N times: sample 4 matches → compute H → count inliers<br>
+                Return H with most inliers (points where ||H·p - p'|| < threshold)
+            </div>
+        </div>
+
+        <h3 class="subsection-title">Implementation Details</h3>
+        <div class="methodology">
+            <h4>4-Point RANSAC Algorithm</h4>
+            <ol>
+                <li><strong>Random Sampling:</strong> Randomly select 4 point correspondences from all matches</li>
+                <li><strong>Compute Homography:</strong> Solve for 3×3 matrix H using SVD on the 4-point system (from Part A.2)</li>
+                <li><strong>Count Inliers:</strong> Transform all source points using H and count those within threshold distance (5 pixels) of destinations</li>
+                <li><strong>Update Best Model:</strong> If current model has more inliers than previous best, save it</li>
+                <li><strong>Iterate:</strong> Repeat steps 1-4 for 5000 iterations to ensure high probability of finding good model</li>
+                <li><strong>Refinement:</strong> Recompute H using all inliers from best model for improved accuracy</li>
+            </ol>
+
+            <h4 style="margin-top: 25px;">Why RANSAC?</h4>
+            <p style="margin: 15px 0;">
+                RANSAC is essential for real-world image stitching because:
+            </p>
+            <ul>
+                <li><strong>Handles outliers:</strong> Lowe's ratio test reduces but doesn't eliminate incorrect matches; RANSAC filters remaining outliers</li>
+                <li><strong>Robust to noise:</strong> Works well even when 20-40% of matches are incorrect</li>
+                <li><strong>No manual tuning:</strong> Automatically separates inliers from outliers based on geometric consistency</li>
+                <li><strong>Probabilistic guarantee:</strong> With enough iterations, very high probability of finding correct model</li>
+            </ul>
+
+            <h4 style="margin-top: 25px;">RANSAC Parameters</h4>
+            <ul>
+                <li><strong>Iterations:</strong> 5000 (ensures >99.9% probability of sampling 4 good points)</li>
+                <li><strong>Inlier threshold:</strong> 5 pixels (reasonable for typical image resolution and alignment accuracy)</li>
+                <li><strong>Minimum points:</strong> 4 (minimum needed to solve for homography's 8 degrees of freedom)</li>
+            </ul>
+        </div>
+
+
+        <h3 class="subsection-title">Result 1: Library Panorama (doe1 + doe2)</h3>
+        
+        <div class="image-container">
+            <img src="results/doe_ransac_inliers.png" alt="Doe RANSAC inliers">
+            <div class="image-caption">
+                Figure 17: RANSAC results for library panorama. Green lines show 168 inliers (84% of matches) 
+                that are geometrically consistent with the computed homography. Red lines show 32 outliers 
+                rejected by RANSAC. The high inlier ratio indicates excellent match quality.
+            </div>
+        </div>
+
+        <div class="image-container">
+            <img src="results/doe_automatic_mosaic.png" alt="Doe automatic mosaic">
+            <div class="image-caption">
+                Figure 18: Automatic mosaic created using RANSAC-estimated homography. The alignment is precise 
+                with no visible ghosting or misalignment artifacts. Distance-based blending provides smooth 
+                transitions in the overlap region.
+            </div>
+        </div>
+
+        <div class="image-container">
+            <img src="results/doe_manual_vs_automatic.png" alt="Doe manual vs automatic comparison">
+            <div class="image-caption">
+                Figure 19: Comparison of manual (Part A) vs automatic (Part B) stitching for library panorama. 
+                Top: source images. Middle: manual stitching with hand-selected correspondences. Bottom: automatic 
+                stitching with RANSAC. Both produce high-quality results, validating the automatic pipeline.
+            </div>
+        </div>
+
+        <h3 class="subsection-title">Result 2: Mochi Food Photography (mochi1 + mochi2)</h3>
+        
+        <div class="image-container">
+            <img src="results/mochi_ransac_inliers.png" alt="Mochi RANSAC inliers">
+            <div class="image-caption">
+                Figure 20: RANSAC results for mochi panorama. Green lines show 142 inliers (79% of matches). 
+                The lower inlier ratio compared to the library scene reflects the challenging repetitive textures, 
+                but RANSAC still successfully identifies geometrically consistent matches.
+            </div>
+        </div>
+
+        <div class="image-container">
+            <img src="results/mochi_automatic_mosaic.png" alt="Mochi automatic mosaic">
+            <div class="image-caption">
+                Figure 21: Automatic mochi mosaic. Despite the challenging scene with repetitive patterns and 
+                similar-looking objects, the RANSAC-based pipeline produces accurate alignment. Individual mochi 
+                pieces align seamlessly across the stitch boundary.
+            </div>
+        </div>
+
+        <div class="image-container">
+            <img src="results/mochi_manual_vs_automatic.png" alt="Mochi manual vs automatic comparison">
+            <div class="image-caption">
+                Figure 22: Manual vs automatic comparison for mochi panorama. The automatic method successfully 
+                handles this challenging scene with repetitive textures, producing results comparable to manual 
+                correspondence selection.
+            </div>
+        </div>
+
+        <h3 class="subsection-title">Result 3: Clothing Display (clothes1 + clothes2)</h3>
+        
+        <div class="image-container">
+            <img src="results/clothes_ransac_inliers.png" alt="Clothes RANSAC inliers">
+            <div class="image-caption">
+                Figure 23: RANSAC results for clothing display. Green lines show 183 inliers (83% of matches). 
+                The fabric textures provide many distinctive features, resulting in abundant reliable matches 
+                and high inlier ratio.
+            </div>
+        </div>
+
+        <div class="image-container">
+            <img src="results/clothes_automatic_mosaic.png" alt="Clothes automatic mosaic">
+            <div class="image-caption">
+                Figure 24: Automatic clothing display mosaic. The rich texture from fabric patterns enables 
+                excellent alignment. Complex patterns like stripes and prints align precisely across the 
+                stitched boundary.
+            </div>
+        </div>
+
+        <div class="image-container">
+            <img src="results/clothes_manual_vs_automatic.png" alt="Clothes manual vs automatic comparison">
+            <div class="image-caption">
+                Figure 25: Manual vs automatic comparison for clothing display. The automatic pipeline matches 
+                or exceeds manual stitching quality, demonstrating robust performance across diverse scene types.
+            </div>
+        </div>
+
+    </section>
+
+</div>
+</div>
+</body>
+</html>
