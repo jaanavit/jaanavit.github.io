@@ -126,29 +126,15 @@
 <body>
     <div class="container">
         <h1>CS180 Computer Vision Portfolio</h1>
+         <p class="subtitle">Jaanavi Thanamala, UC Berkeley Computer Science</p>
         <p class="subtitle">A Journey Through Image Processing, Computational Photography, and Neural Rendering</p>
 
         <div class="project-card">
-            <h2 class="project-title">Project 0 — Camera Geometry, Perspective, and Focal Length Effects</h2>
+            <h2 class="project-title">Project 4 — Neural Radiance Fields (NeRF)</h2>
             <p class="project-description">
-                I explored geometric distortion through the lens of the pinhole camera model, demonstrating how varying focal length and camera-to-subject distance affect perspective projection and perceived facial proportions. I analyzed perspective compression by capturing architectural scenes at different focal lengths to show how projection parameters influence depth scaling. Finally, I implemented a dolly zoom by synchronizing camera translation with focal length adjustments, illustrating how coordinated changes in intrinsic and extrinsic parameters alter background geometry while preserving subject size.
+                I implemented the full NeRF pipeline from scratch, beginning with ArUco-based camera calibration and pose recovery, followed by building a 2D neural field to understand positional encoding and coordinate-based MLPs. I then extended this to a full 3D NeRF with ray generation, stratified sampling, and differentiable volume rendering to reconstruct scenes from multi-view images. Using both the Lego dataset and my own captured object, the model successfully produced coherent novel viewpoints, with performance influenced by near/far plane tuning, learning-rate decay, and network capacity.
             </p>
-            <a href="./proj0/index.html" class="project-link">View Project →</a>
-        </div>
-
-        <div class="project-card">
-            <h2 class="project-title">Project 1 — Image Filtering & Hybrid Images</h2>
-            <p class="project-description">
-                I implemented both single-scale and pyramid-based alignment algorithms to register the red and green channels to the blue channel, using normalized cross-correlation and multi-resolution refinement to handle high-resolution TIFF images efficiently. To improve robustness on challenging images with exposure differences, I incorporated Sobel-based edge maps and an edge-aware scoring function that emphasized structural consistency over raw intensity. The resulting pipeline produced accurate RGB reconstructions across the full dataset, with additional tuning for difficult cases like self_portrait and emir to ensure precise color alignment.
-            <a href="./proj1/index.html" class="project-link">View Project →</a>
-        </div>
-
-        <div class="project-card">
-            <h2 class="project-title">Project 2 — Filters and Frequencies</h2>
-            <p class="project-description">
-               I developed custom 2D convolution implementations—from naive multi-loop versions to optimized vectorized approaches—and validated their correctness against scipy.signal.convolve2d. Building on this foundation, I implemented finite-difference and Derivative-of-Gaussian filters, unsharp masking, hybrid imaging, and multi-resolution (Gaussian/Laplacian pyramid) blending to demonstrate how frequency-domain representations enable precise control over edge structure, detail enhancement, and seamless image compositing.
-            </p>
-            <a href="./proj2/index.html" class="project-link">View Project →</a>
+            <a href="./proj4/index.html" class="project-link">View Project →</a>
         </div>
 
         <div class="project-card">
@@ -160,11 +146,26 @@
         </div>
 
         <div class="project-card">
-            <h2 class="project-title">Project 4 — Neural Radiance Fields (NeRF)</h2>
+            <h2 class="project-title">Project 2 — Filters and Frequencies</h2>
             <p class="project-description">
-                I implemented the full NeRF pipeline from scratch, beginning with ArUco-based camera calibration and pose recovery, followed by building a 2D neural field to understand positional encoding and coordinate-based MLPs. I then extended this to a full 3D NeRF with ray generation, stratified sampling, and differentiable volume rendering to reconstruct scenes from multi-view images. Using both the Lego dataset and my own captured object, the model successfully produced coherent novel viewpoints, with performance influenced by near/far plane tuning, learning-rate decay, and network capacity.
+               I developed custom 2D convolution implementations—from naive multi-loop versions to optimized vectorized approaches—and validated their correctness against scipy.signal.convolve2d. Building on this foundation, I implemented finite-difference and Derivative-of-Gaussian filters, unsharp masking, hybrid imaging, and multi-resolution (Gaussian/Laplacian pyramid) blending to demonstrate how frequency-domain representations enable precise control over edge structure, detail enhancement, and seamless image compositing.
             </p>
-            <a href="./proj4/index.html" class="project-link">View Project →</a>
+            <a href="./proj2/index.html" class="project-link">View Project →</a>
+        </div>
+
+         <div class="project-card">
+            <h2 class="project-title">Project 1 — Image Filtering & Hybrid Images</h2>
+            <p class="project-description">
+                I implemented both single-scale and pyramid-based alignment algorithms to register the red and green channels to the blue channel, using normalized cross-correlation and multi-resolution refinement to handle high-resolution TIFF images efficiently. To improve robustness on challenging images with exposure differences, I incorporated Sobel-based edge maps and an edge-aware scoring function that emphasized structural consistency over raw intensity. The resulting pipeline produced accurate RGB reconstructions across the full dataset, with additional tuning for difficult cases like self_portrait and emir to ensure precise color alignment.
+            <a href="./proj1/index.html" class="project-link">View Project →</a>
+        </div>
+
+         <div class="project-card">
+            <h2 class="project-title">Project 0 — Camera Geometry, Perspective, and Focal Length Effects</h2>
+            <p class="project-description">
+                I explored geometric distortion through the lens of the pinhole camera model, demonstrating how varying focal length and camera-to-subject distance affect perspective projection and perceived facial proportions. I analyzed perspective compression by capturing architectural scenes at different focal lengths to show how projection parameters influence depth scaling. Finally, I implemented a dolly zoom by synchronizing camera translation with focal length adjustments, illustrating how coordinated changes in intrinsic and extrinsic parameters alter background geometry while preserving subject size.
+            </p>
+            <a href="./proj0/index.html" class="project-link">View Project →</a>
         </div>
 
         <footer>
