@@ -1,19 +1,176 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>My Portfolio</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS180 Computer Vision Portfolio</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: #1a1a1a;
+            background: #fafafa;
+            min-height: 100vh;
+            padding: 60px 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 80px 60px;
+            border-radius: 2px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        h1 {
+            color: #1a1a1a;
+            font-size: 2.8em;
+            margin-bottom: 12px;
+            text-align: center;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 1.05em;
+            margin-bottom: 70px;
+            font-weight: 400;
+            letter-spacing: 0.2px;
+        }
+
+        .project-card {
+            background: white;
+            border: 1px solid #e5e5e5;
+            padding: 35px;
+            margin-bottom: 24px;
+            border-radius: 2px;
+            transition: all 0.2s ease;
+        }
+
+        .project-card:hover {
+            border-color: #1a1a1a;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .project-title {
+            color: #1a1a1a;
+            font-size: 1.4em;
+            margin-bottom: 16px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .project-description {
+            color: #4a4a4a;
+            line-height: 1.75;
+            margin-bottom: 20px;
+            font-size: 0.98em;
+        }
+
+        .project-link {
+            display: inline-block;
+            background: #1a1a1a;
+            color: white;
+            padding: 11px 28px;
+            text-decoration: none;
+            border-radius: 2px;
+            font-weight: 500;
+            font-size: 0.95em;
+            transition: all 0.2s ease;
+            letter-spacing: 0.3px;
+        }
+
+        .project-link:hover {
+            background: #333;
+            transform: translateY(-1px);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 70px;
+            padding-top: 30px;
+            border-top: 1px solid #e5e5e5;
+            color: #999;
+            font-size: 0.9em;
+            letter-spacing: 0.2px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 40px 30px;
+            }
+
+            h1 {
+                font-size: 2.2em;
+            }
+
+            .project-title {
+                font-size: 1.25em;
+            }
+
+            .project-card {
+                padding: 25px;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Welcome to My CS180 Portfolio!</h1>
-    <a href="./proj0/index.html">Project 0</a>
-    <a href="./proj1/index.html">Project 1</a>
-    <a href="./proj2/index.html">Project 2</a>
-    <a href="./proj3/index.html">Project 3a</a>
+    <div class="container">
+        <h1>CS180 Computer Vision Portfolio</h1>
+        <p class="subtitle">A Journey Through Image Processing, Computational Photography, and Neural Rendering</p>
+
+        <div class="project-card">
+            <h2 class="project-title">Project 0 — Image Manipulation & Warm-Up</h2>
+            <p class="project-description">
+                I implemented basic image processing operations such as color channel manipulation, filtering, and blending to build intuition for working with pixel arrays. This project established the foundation for efficient NumPy operations and vectorized image transformations.
+            </p>
+            <a href="./proj0/index.html" class="project-link">View Project →</a>
+        </div>
+
+        <div class="project-card">
+            <h2 class="project-title">Project 1 — Image Filtering & Hybrid Images</h2>
+            <p class="project-description">
+                I built convolution filters from scratch to perform operations like sharpening, edge detection, and Gaussian blurring. I then created hybrid images by combining frequency components, demonstrating spatial vs. frequency-domain reasoning.
+            </p>
+            <a href="./proj1/index.html" class="project-link">View Project →</a>
+        </div>
+
+        <div class="project-card">
+            <h2 class="project-title">Project 2 — Filters and Frequencies</h2>
+            <p class="project-description">
+               I developed custom 2D convolution implementations—from naive multi-loop versions to optimized vectorized approaches—and validated their correctness against scipy.signal.convolve2d. Building on this foundation, I implemented finite-difference and Derivative-of-Gaussian filters, unsharp masking, hybrid imaging, and multi-resolution (Gaussian/Laplacian pyramid) blending to demonstrate how frequency-domain representations enable precise control over edge structure, detail enhancement, and seamless image compositing.
+            </p>
+            <a href="./proj2/index.html" class="project-link">View Project →</a>
+        </div>
+
+        <div class="project-card">
+            <h2 class="project-title">Project 3 — Image Mosaicing (Manual + Automatic Stitching)</h2>
+            <p class="project-description">
+                I implemented a full image-stitching pipeline including homography estimation, inverse warping, and multi-scale Laplacian blending to manually create seamless panoramas. I then built an automatic version using Harris corner detection, ANMS, feature descriptors, Lowe’s ratio test, and RANSAC to robustly compute homographies and mosaic images without manual correspondences.
+            </p>
+            <a href="./proj3/index.html" class="project-link">View Project →</a>
+        </div>
+
+        <div class="project-card">
+            <h2 class="project-title">Project 4 — Neural Radiance Fields (NeRF)</h2>
+            <p class="project-description">
+                I trained a NeRF model from scratch by implementing positional encoding, ray sampling, volumetric rendering, and MLP-based density/color prediction. I experimented with near/far plane tuning, learning-rate scheduling, and training iterations to optimize PSNR across my dataset.
+            </p>
+            <a href="./proj4/index.html" class="project-link">View Project →</a>
+        </div>
+
+        <footer>
+            <p>CS180: Introduction to Computer Vision and Computational Photography</p>
+        </footer>
+    </div>
 </body>
 </html>
