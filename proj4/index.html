@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project 4: Neural Radiance Fields (NeRF)</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+                sans-serif;
+            background: #0f1624;
+            color: #e6e6e6;
+            line-height: 1.65;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        .header {
+            padding: 60px 40px 30px 40px;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 42px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: #b8c5d6;
+            margin-top: 10px;
+        }
+
+        /* --- NAV --- */
+        .nav {
+            background: #16213e;
+            border-bottom: 1px solid #0f3460;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 0 40px;
+        }
+
+        .nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            gap: 35px;
+            overflow-x: auto;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #b8c5d6;
+            display: block;
+            padding: 17px 0;
+            border-bottom: 3px solid transparent;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .nav a:hover {
+            color: #ffffff;
+            border-bottom-color: #0f3460;
+        }
+
+        /* --- SECTIONS --- */
+        .content {
+            padding: 40px 0 80px 0;
+        }
+
+        .section {
+            margin-bottom: 60px;
+        }
+
+        .section-title {
+            font-size: 32px;
+            margin-bottom: 15px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .subsection-title {
+            font-size: 24px;
+            margin-top: 30px;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #d9e7ff;
+        }
+
+        pre, code {
+            background: #1c2439;
+            padding: 15px;
+            display: block;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .highlight {
+            background: #1c2439;
+            padding: 15px 20px;
+            border-left: 4px solid #4a90e2;
+            margin: 20px 0;
+            border-radius: 6px;
+        }
+
+        .image-container {
+            margin: 25px 0;
+            text-align: center;
+        }
+
+        .image-container img {
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        .caption {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #b8c5d6;
+        }
+
+        footer {
+            text-align: center;
+            color: #8292ad;
+            font-size: 14px;
+            padding: 40px 0;
+            border-top: 1px solid #0f3460;
+        }
+
+        @media (max-width: 768px) {
+            .header, .content, .nav {
+                padding: 20px 25px;
+            }
+            h1 {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>Project 4: Neural Radiance Fields (NeRF)</h1>
+        <p class="subtitle">CS180: Computer Vision · Fall 2024</p>
+        <p class="subtitle">Reconstructing 3D Scenes from 2D Images</p>
+    </div>
+
+    <!-- NAVIGATION -->
+    <nav class="nav">
+        <ul>
+            <li><a href="#part0">Part 0: Calibration</a></li>
+            <li><a href="#part1">Part 1: Neural Field</a></li>
+            <li><a href="#part2">Part 2: NeRF</a></li>
+            <li><a href="#conclusion">Conclusion</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="content">
+
+            <!-- PART 0 -->
+            <section class="section" id="part0">
+                <h2 class="section-title">Part 0: Calibrating the Camera & Capturing the Object</h2>
+
+                <p>
+                    Before training a NeRF, we must understand how our camera sees the world.
+                    This part of the project involves:  
+                </p>
+
+                <ul>
+                    <li>Collecting images of an object using ArUco markers</li>
+                    <li>Calibrating the camera to obtain intrinsic parameters</li>
+                    <li>Recovering camera poses for each captured view</li>
+                </ul>
+
+                <h3 class="subsection-title">0.1 Camera Calibration</h3>
+                <p>
+                    I captured ~40 calibration images using my iPhone. Since many of the images were HEIC format,
+                    my code included a Pillow-based HEIC loader. For every calibration frame, I detected all ArUco
+                    markers (DICT_4X4_50) and extracted the 2D corner pixel locations. The corresponding 3D points
+                    were defined assuming each tag lies on the plane <code>z = 0</code>.
+                </p>
+
+                <h4>Calibration Code Snippet</h4>
+                <pre><code>aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
+aruco_params = cv2.aruco.DetectorParameters()
+detector = cv2.aruco.ArucoDetector(aruco_dict, aruco_params)
+
+corners, ids, _ = detector.detectMarkers(gray)
+if ids is not None:
+    for c in corners:
+        all_corners.append(c.reshape(4, 2))
+        all_obj.append(marker_3d_points)</code></pre>
+
+                <h4>Results</h4>
+                <p>
+                    The calibration converged successfully with <strong>192 detected markers</strong> across ~40 calibration images.
+                    The focal lengths obtained are consistent with an iPhone camera, though the distortion coefficients indicate
+                    notable lens aberration typical of smartphone cameras with wide-angle lenses.
+                </p>
+
+                <div class="highlight">
+                    <p><strong>Reprojection Error:</strong> 2.29 pixels</p>
+                    <p><strong>Camera Matrix (K):</strong></p>
+                    <pre style="background: transparent; padding: 5px 0; font-size: 13px;">[[7968.46      0.00   1513.31]
+ [   0.00   9711.47   1995.03]
+ [   0.00      0.00      1.00]]</pre>
+                    <p><strong>Focal Lengths:</strong> fx = 7968.46, fy = 9711.47</p>
+                    <p><strong>Principal Point:</strong> (1513.31, 1995.03)</p>
+                    <p><strong>Distortion Coefficients:</strong></p>
+                    <pre style="background: transparent; padding: 5px 0; font-size: 13px;">[k1=0.846, k2=-15.622, p1=0.369, p2=0.056, k3=-7.968]</pre>
+                </div>
+
+                <div class="image-container">
+                    <img src="Screenshot1.png" alt="Camera calibration visualization">
+                    <p class="caption">Camera calibration with ArUco marker detection across multiple frames</p>
+                </div>
+
+                <div class="image-container">
+                    <img src="Screenshot2.png" alt="Pose estimation results">
+                    <p class="caption">Pose estimation output showing recovered camera extrinsics</p>
+                </div>
+
+                <h3 class="subsection-title">0.2 Pose Estimation</h3>
+                <p>
+                    After computing the intrinsics, I detected ArUco markers in each dataset frame and recovered full camera
+                    poses using <code>cv2.solvePnP</code>. These extrinsics define where the camera was located for every image.
+                    The calibration data was saved to <code>camera_calibration.npz</code> and successfully loaded for pose 
+                    estimation in subsequent steps.
+                </p>
+            </section>
+
+            <!-- PART 1 -->
+            <section class="section" id="part1">
+                <h2 class="section-title">Part 1: Fit a Neural Field to a 2D Image</h2>
+
+                <p>
+                    Before working with 3D scenes, we begin with a simpler neural field that directly maps 2D coordinates to
+                    RGB pixel colors. This 2D case helps build intuition for how Neural Radiance Fields represent continuous 
+                    functions. In 2D, the neural field function becomes <code>F(x, y) → (R, G, B)</code>, where (x, y) are 
+                    normalized pixel coordinates and (R, G, B) is the predicted color.
+                </p>
+
+                <h3 class="subsection-title">1.1 Network Architecture</h3>
+                
+                <p>
+                    The neural field is implemented as a Multi-Layer Perceptron (MLP) with Sinusoidal Positional Encoding (PE).
+                    The architecture consists of:
+                </p>
+
+                <ul>
+                    <li><strong>Positional Encoding:</strong> Maps 2D coordinates to higher dimensional space using sinusoidal functions</li>
+                    <li><strong>MLP Layers:</strong> 4 hidden layers with ReLU activations</li>
+                    <li><strong>Output Layer:</strong> 3 channels (RGB) with Sigmoid activation to constrain outputs to [0, 1]</li>
+                </ul>
+
+                <h4>Positional Encoding</h4>
+                <p>
+                    The positional encoding expands input coordinates using sinusoidal functions at multiple frequency levels:
+                </p>
+
+                <div class="highlight">
+                    <code>PE(x) = [x, sin(2⁰πx), cos(2⁰πx), sin(2¹πx), cos(2¹πx), ..., sin(2^L πx), cos(2^L πx)]</code>
+                </div>
+
+                <p>
+                    For L = 10 (max frequency), this maps 2D coordinates to a 42-dimensional vector (2 original + 2×2×11 encoded).
+                </p>
+
+                <h4>Model Specifications</h4>
+                <div class="highlight">
+                    <p><strong>Architecture:</strong></p>
+                    <ul style="margin: 10px 0;">
+                        <li>Input dimension: 2 (x, y coordinates)</li>
+                        <li>Positional encoding: L = 10 → 42 dimensions</li>
+                        <li>Hidden layers: 4 layers × 256 channels</li>
+                        <li>Output dimension: 3 (RGB)</li>
+                        <li>Total parameters: ~300,000</li>
+                    </ul>
+                    <p><strong>Training Hyperparameters:</strong></p>
+                    <ul style="margin: 10px 0;">
+                        <li>Optimizer: Adam</li>
+                        <li>Learning rate: 1e-2</li>
+                        <li>Batch size: 10,000 pixels</li>
+                        <li>Iterations: 3,000</li>
+                        <li>Loss function: MSE</li>
+                        <li>Metric: PSNR = -10 × log₁₀(MSE)</li>
+                    </ul>
+                </div>
+
+                <h3 class="subsection-title">1.2 Implementation Details</h3>
+
+                <h4>Dataloader</h4>
+                <p>
+                    Due to GPU memory constraints, I implemented a stochastic dataloader that randomly samples 10,000 pixels 
+                    per iteration. Both coordinates and colors are normalized to [0, 1]:
+                </p>
+
+                <pre><code>x_norm = x / image_width
+y_norm = y / image_height
+rgb_norm = rgb / 255.0</code></pre>
+
+                <h4>Training Loop</h4>
+                <p>
+                    The model is trained by minimizing MSE between predicted and ground truth pixel colors. Every 100 iterations,
+                    I evaluate on the full image to compute the validation PSNR.
+                </p>
+
+                <h3 class="subsection-title">1.3 Training Progression</h3>
+
+                <p>
+                    The following shows how the neural field progressively learns to represent the image over 3,000 iterations:
+                </p>
+
+                <div class="image-container">
+                    <img src="outputs_part1_test1/progression_row_test1.png" alt="Training progression">
+                    <p class="caption">Training progression at iterations 0, 100, 250, 500, 1000, 2000, and 3000. 
+                    The network first learns low-frequency structure, then progressively captures finer details.</p>
+                </div>
+
+                <div class="image-container">
+                    <img src="outputs_part1_test1/reconstruction_test1.png" alt="Final reconstruction">
+                    <p class="caption">Final reconstruction after 3,000 iterations compared to original image</p>
+                </div>
+
+                <h3 class="subsection-title">1.4 PSNR Curve</h3>
+
+                <p>
+                    The PSNR metric shows steady improvement throughout training, with rapid initial gains followed by 
+                    gradual refinement of details:
+                </p>
+
+                <div class="image-container">
+                    <img src="outputs_part1_test1/psnr_test1.png" alt="PSNR curve">
+                    <p class="caption">PSNR over training iterations. The network achieves ~35 dB after 3,000 iterations,
+                    indicating high-quality reconstruction.</p>
+                </div>
+
+                <h3 class="subsection-title">1.5 Hyperparameter Experiments</h3>
+
+                <p>
+                    I explored how different hyperparameters affect reconstruction quality by varying:
+                </p>
+                <ul>
+                    <li><strong>Max Frequency (L):</strong> Controls the highest frequency in positional encoding (2 vs 10)</li>
+                    <li><strong>Network Width:</strong> Number of channels in hidden layers (64 vs 256)</li>
+                </ul>
+
+                <h4>Results: 2×2 Hyperparameter Grid</h4>
+
+                <div class="image-container">
+                    <img src="outputs_part1_test1/.png" alt="Hyperparameter comparison grid">
+                    <p class="caption">Comparison of 4 configurations after 2,000 iterations</p>
+                </div>
+
+                <div class="highlight">
+                    <p><strong>Key Findings:</strong></p>
+                    <ul style="margin: 10px 0;">
+                        <li><strong>Low Freq (L=2), Narrow (64):</strong> Blurry, lacks detail - cannot represent high frequencies</li>
+                        <li><strong>Low Freq (L=2), Wide (256):</strong> Still blurry - width alone doesn't help without frequency encoding</li>
+                        <li><strong>High Freq (L=10), Narrow (64):</strong> Better detail but limited by network capacity</li>
+                        <li><strong>High Freq (L=10), Wide (256):</strong> Best results - captures both fine details and smooth regions</li>
+                    </ul>
+                </div>
+
+                <h4>Analysis</h4>
+                <p>
+                    The experiments reveal that <strong>positional encoding frequency is crucial</strong> for capturing 
+                    high-frequency details. Without sufficient frequency encoding (L=2), the network can only represent 
+                    smooth, low-frequency variations regardless of network width. However, high-frequency encoding (L=10) 
+                    combined with sufficient network capacity (256 channels) enables accurate reconstruction of sharp edges 
+                    and fine textures.
+                </p>
+
+                <h3 class="subsection-title">1.6 Custom Image Results</h3>
+                
+
+                <p>
+                    I also trained the neural field on a second custom image (test2.jpg) to verify generalization and robustness:
+                </p>
+
+                <div class="image-container">
+                    <img src="outputs_part1_test2/progression_row_test2.png" alt="Training progression test2">
+                    <p class="caption">Training progression on custom image (test2.jpg) at iterations 0, 100, 250, 500, 1000, 2000, and 3000. 
+                    Similar learning pattern observed: coarse features emerge first, followed by fine details.</p>
+                </div>
+
+                <div class="image-container">
+                    <img src="outputs_part1_test2/reconstruction_test2.png" alt="Final reconstruction test2">
+                    <p class="caption">Final reconstruction after 3,000 iterations. The model achieved <strong>37.80 dB PSNR</strong>, demonstrating 
+                    excellent reconstruction quality on the custom image and confirming the approach generalizes well across different images.</p>
+                </div>
+
+            </section>
+
+            <!-- PART 2 -->
+            <section class="section" id="part2">
+                <h2 class="section-title">Part 2: Neural Radiance Fields (NeRF)</h2>
+
+                <p>
+                    Now that we understand neural fields in 2D, we extend to 3D by implementing a full Neural Radiance Field 
+                    that reconstructs a 3D scene from multiple calibrated 2D images. NeRF models a 3D scene as a continuous 
+                    volumetric function that maps 3D spatial locations and viewing directions to volume density and view-dependent 
+                    emitted radiance:
+                </p>
+
+                <h3 class="subsection-title">2.1 Creating Rays from Cameras</h3>
+
+                <p>
+                    The first step is converting 2D pixel coordinates into 3D rays in world space. This requires understanding 
+                    three coordinate transformations:
+                </p>
+
+                <h4>Camera-to-World Transformation</h4>
+                <p>
+                    The camera-to-world (c2w) transformation matrix converts points from camera coordinates to world coordinates. 
+                    For a 4×4 homogeneous transformation matrix, the transformation applies rotation and translation to map 
+                    camera-space points to world-space coordinates.
+                </p>
+
+                <h4>Pixel-to-Camera Conversion</h4>
+                <p>
+                    Given a pinhole camera with focal length f and principal point (cx, cy), the intrinsic matrix K projects 
+                    3D camera coordinates to 2D pixel coordinates. I implemented the inverse operation to convert pixel 
+                    coordinates back to 3D camera-space rays.
+                </p>
+
+                <h4>Pixel-to-Ray Conversion</h4>
+                <p>
+                    For each pixel, I compute a ray with origin at the camera center and direction pointing through the pixel. 
+                    The ray origin is the translation component of the c2w matrix, and the direction is computed by 
+                    projecting a point at depth=1 through the pixel coordinate and normalizing.
+                </p>
+
+                <h3 class="subsection-title">2.2 Sampling Strategy</h3>
+
+                <h4>Sampling Rays from Images</h4>
+                <p>
+                    With 100 training images (each 200×200 pixels), we have 4 million total pixels. Training on all pixels 
+                    simultaneously is memory-prohibitive, so I implemented a stochastic dataloader that randomly samples 
+                    10,000 rays per iteration from all images. Key implementation details:
+                </p>
+
+                <ul>
+                    <li>Add 0.5 offset to pixel coordinates to sample from pixel centers</li>
+                    <li>Flatten all pixels from all images for global random sampling</li>
+                    <li>Normalize pixel colors to [0, 1] range</li>
+                    <li>Store precomputed ray origins and directions for efficiency</li>
+                </ul>
+
+                <h4>Sampling Points Along Rays</h4>
+                <p>
+                    Each ray is discretized into 64 samples between near=2.0 and far=6.0. During training, I add random 
+                    perturbations to prevent overfitting to fixed 3D locations. This stratified sampling ensures the 
+                    network sees diverse depth values along each ray throughout training.
+                </p>
+
+                <h3 class="subsection-title">2.3 Visualization: Cameras, Rays & Samples</h3>
+
+                <p>
+                    To verify the ray generation pipeline, I visualized cameras, sampled rays, and 3D points using the 
+                    <code>viser</code> library. This helps ensure rays emanate correctly from camera frustums and sample 
+                    points lie along the expected trajectories.
+                </p>
+
+                <div class="image-container">
+                    <img src="3DLego1.png" alt="3D visualization of cameras, rays, and samples">
+                    <p class="caption">3D visualization showing camera frustums (with training images), 100 sampled rays 
+                    (colored lines), and sample points along rays (point cloud). All rays correctly emanate from camera 
+                    positions and sample the volume between near=2.0 and far=6.0 planes.</p>
+                </div>
+
+                <div class="image-container">
+                    <img src="3DLego2.png" alt="Second photo">
+                </div>
+
+                <h3 class="subsection-title">2.4 Neural Radiance Field Network</h3>
+
+                <p>
+                    The NeRF network extends the 2D neural field with several key differences:
+                </p>
+
+                <ul>
+                    <li><strong>3D Input:</strong> Takes 3D world coordinates (x, y, z) instead of 2D pixel coordinates</li>
+                    <li><strong>View-Dependent Color:</strong> Conditions color prediction on viewing direction</li>
+                    <li><strong>Density Output:</strong> Predicts volume density σ in addition to RGB color</li>
+                    <li><strong>Deeper Architecture:</strong> Uses 8 layers to handle 3D complexity</li>
+                    <li><strong>Skip Connections:</strong> Injects encoded input at layer 4 to prevent information loss</li>
+                </ul>
+
+                <h4>Network Architecture</h4>
+
+                <div class="highlight">
+                    <p><strong>Input Processing:</strong></p>
+                    <ul style="margin: 10px 0;">
+                        <li>Position encoding: 3D coordinates → L=10 → 63 dimensions</li>
+                        <li>Direction encoding: 3D direction → L=4 → 27 dimensions</li>
+                    </ul>
+                    
+                    <p><strong>Architecture:</strong></p>
+                    <ul style="margin: 10px 0;">
+                        <li>Layers 1-4: Process position encoding (63 → 256 → 256 → 256 → 256)</li>
+                        <li>Layer 5: Concatenate position encoding again (256 + 63 → 256)</li>
+                        <li>Layers 6-8: Further processing (256 → 256 → 256 → 256)</li>
+                        <li>Density head: 256 → 1 (with ReLU activation)</li>
+                        <li>Feature layer: 256 → 256</li>
+                        <li>Direction processing: Concatenate direction encoding (256 + 27 → 128)</li>
+                        <li>Color head: 128 → 3 (with Sigmoid activation)</li>
+                    </ul>
+                    
+                    <p><strong>Total Parameters:</strong> ~1.2M</p>
+                </div>
+
+                <h3 class="subsection-title">2.5 Volume Rendering</h3>
+
+                <p>
+                    The core of NeRF is the differentiable volume rendering equation that integrates color and density 
+                    along each ray. The continuous integral is approximated with discrete sampling:
+                </p>
+
+                <div class="highlight">
+                    <p><strong>Continuous Rendering Equation:</strong></p>
+                    <code>C(r) = ∫ T(t) · σ(t) · c(t) dt</code>
+                    
+                    <p style="margin-top: 15px;"><strong>Discrete Approximation:</strong></p>
+                    <code>C(r) = Σᵢ Tᵢ · αᵢ · cᵢ</code>
+                    
+                    <p style="margin-top: 15px;">where:</p>
+                    <ul style="margin: 10px 0;">
+                        <li><strong>Tᵢ</strong> = exp(-Σⱼ<ᵢ σⱼ·δⱼ) = accumulated transmittance (probability ray reaches sample i)</li>
+                        <li><strong>αᵢ</strong> = 1 - exp(-σᵢ·δᵢ) = opacity at sample i</li>
+                        <li><strong>δᵢ</strong> = tᵢ₊₁ - tᵢ = distance between samples</li>
+                        <li><strong>cᵢ</strong> = RGB color at sample i</li>
+                    </ul>
+                </div>
+
+                <p>
+                    I implemented this using PyTorch's differentiable operations, particularly <code>torch.cumprod</code> 
+                    for computing accumulated transmittance. The implementation passed all provided unit tests, confirming 
+                    correct volume rendering behavior.
+                </p>
+
+                <h3 class="subsection-title">2.5 Training Results & Visualizations</h3>
+
+                <h4>Training Configuration</h4>
+                <div class="highlight">
+                    <ul style="margin: 10px 0;">
+                        <li><strong>Optimizer:</strong> Adam with learning rate 5e-4</li>
+                        <li><strong>Batch Size:</strong> 10,000 rays per iteration</li>
+                        <li><strong>Iterations:</strong> 1,000 gradient steps</li>
+                        <li><strong>Loss Function:</strong> MSE between rendered and ground truth pixel colors</li>
+                        <li><strong>Samples per Ray:</strong> 64 points between near=2.0 and far=6.0</li>
+                        <li><strong>Validation:</strong> Evaluate on 10 held-out views every 100 iterations</li>
+                    </ul>
+                </div>
+
+                <h4>Training and Validation PSNR Curves</h4>
+
+                <p>
+                    I tracked PSNR on both training rays and validation images throughout training. The model achieves 
+                    over 23 dB PSNR on the validation set, meeting the target threshold:
+                </p>
+
+                <div class="image-container">
+                    <img src="outputs/combined_psnr.png" alt="Training and validation PSNR curves">
+                    <p class="caption">Training and validation PSNR over 1,000 iterations. The training PSNR (blue) shows 
+                    steady improvement with some variance due to stochastic ray sampling. The validation PSNR (orange) 
+                    increases smoothly, reaching ~23 dB by iteration 1000, demonstrating successful scene reconstruction 
+                    without overfitting.</p>
+                </div>
+
+                <h4>Training Progression on Validation View</h4>
+
+                <p>
+                    The following visualization shows how the NeRF progressively learns the 3D scene geometry and 
+                    appearance over training iterations:
+                </p>
+
+                <div class="image-container">
+                    <img src="outputs/val0_progression.png" alt="Training progression on validation view 0">
+                    <p class="caption">Training progression showing rendered validation view 0 at iterations 0, 200, 400, 600, and 1000. 
+                    The network starts with random noise and gradually learns the lego excavator's geometry and appearance, 
+                    achieving clear reconstruction by iteration 1000.</p>
+                </div>
+
+                <h4>Validation Set Comparison</h4>
+
+                <p>
+                    After training, I rendered all 10 validation views and compared them with ground truth. The NeRF 
+                    successfully captures the 3D structure and appearance from novel viewpoints:
+                </p>
+
+                <div class="image-container">
+                    <img src="outputs/validation_comparison.png" alt="Validation set comparison">
+                    <p class="caption">Comparison of ground truth (top row) vs. rendered (bottom row) validation images 
+                    for all 10 held-out views. The NeRF accurately reconstructs the lego excavator from multiple angles, 
+                    preserving geometric details and color consistency across viewpoints. Some minor artifacts appear in 
+                    the background and fine details, which could be improved with longer training.</p>
+                </div>
+
+                <h4>Novel View Synthesis: Spherical Rendering</h4>
+
+                <p>
+                    The ultimate test of NeRF is rendering completely novel viewpoints. Using the 60 test camera poses 
+                    provided in the dataset, I rendered a smooth spherical trajectory around the lego excavator:
+                </p>
+
+                <div class="image-container">
+                    <video width="100%" controls style="border-radius: 8px;">
+                        <source src="outputs/spherical/lego_spherical.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <p class="caption">Novel view synthesis: 360° spherical rendering of the lego excavator. The camera 
+                    orbits around the object at constant radius, revealing consistent 3D geometry and appearance from 
+                    all angles. This demonstrates the model's ability to synthesize photorealistic views from arbitrary 
+                    camera positions not seen during training.</p>
+                </div>
+            </section>
+
+            <section class="section" id="part26">
+                <h2 class="section-title">Part 2.6: NeRF on Personal Object</h2>
+
+                <p>
+                    To demonstrate NeRF's real-world applicability, I captured my own object using the ArUco marker-based 
+                    calibration system from Part 0 and trained a NeRF to reconstruct it from multiple viewpoints.
+                </p>
+
+                <h3 class="subsection-title">Data Collection & Setup</h3>
+
+                <p>
+                    I collected images of my object from multiple angles using ArUco markers for camera pose estimation. 
+                    The dataset was split into 90% training and 10% validation images. Key configuration:
+                </p>
+
+                <div class="highlight">
+                    <ul style="margin: 10px 0;">
+                        <li><strong>Dataset:</strong> Personal object scan with ArUco marker-based poses</li>
+                        <li><strong>Image Resolution:</strong> 200×200 pixels</li>
+                        <li><strong>Training Images:</strong> 90% of captured views</li>
+                        <li><strong>Validation Images:</strong> 10% held-out views</li>
+                        <li><strong>Scene Bounds:</strong> near=0.13m, far=1.1m (estimated from camera-object distance)</li>
+                        <li><strong>Network:</strong> Simplified NeRF (L=6, 128 hidden dim, 192 samples/ray)</li>
+                        <li><strong>Training:</strong> 5,000 iterations with learning rate decay</li>
+                    </ul>
+                </div>
+
+                <h3 class="subsection-title">Training Results</h3>
+
+                <h4>Training Curves</h4>
+
+                <p>
+                    The model was trained for 5,000 iterations with periodic validation. Training loss decreased 
+                    steadily while validation PSNR improved over time:
+                </p>
+
+                <div class="image-container">
+                    <img src="training_curves.png" alt="Object NeRF training curves">
+                    <p class="caption">Training loss (left) and validation PSNR (right) over 5,000 iterations. 
+                    The validation PSNR reaches 17.31 dB, indicating successful learning of the object's 3D structure.</p>
+                </div>
+
+                <h4>Training Progression</h4>
+
+                <p>
+                    The following shows how the NeRF learns to reconstruct the object over the course of training:
+                </p>
+
+                <div class="image-container">
+                    <img src="val0_progression.png" alt="Object NeRF training progression">
+                    <p class="caption">Training progression on validation view 0 at iterations 0, 500, 1000, 2000, 3000, 4000, and 5000. 
+                    The network gradually learns the object's shape and appearance, starting from random noise to a recognizable 
+                    reconstruction.</p>
+                </div>
+
+                <h4>Novel View Synthesis: Object Rotation</h4>
+
+                <p>
+                    Using the trained NeRF, I rendered a 360° rotation around the object by generating a circular camera 
+                    trajectory. This demonstrates the model's ability to synthesize photorealistic views from arbitrary angles:
+                </p>
+
+                <div class="image-container">
+                    <video width="100%" controls style="border-radius: 8px;">
+                        <source src="object_spherical.mp4" type="video/mp4">
+                    </video>
+                    <p class="caption">360° rotation of the reconstructed object. The camera orbits around the object 
+                    at constant radius, revealing the learned 3D structure from all angles. Despite the moderate PSNR of 17.31 dB, 
+                    the NeRF successfully captures the overall shape and appearance of the object.</p>
+                </div>
+
+                <h4>Results Discussion</h4>
+
+                <p>
+                    The final validation PSNR of <strong>17.31 dB</strong>
+                    During my NeRF training process, I made several targeted changes to reduce overfitting and improve reconstruction quality. First, I adjusted the near and far plane values used for sampling. The original setup used a near value around 0.5 and a far value around 0.3, but this caused the model to overfit early in training. I lowered the near value to 0.13 and increased the far value to around 1.1 so that rays would sample a more appropriate depth range for my scene.
+
+I also introduced a decaying learning rate schedule so the optimizer would take larger steps early on and smaller, more stable steps later in training. In addition, I experimented with the number of training iterations. I started with 10,000 iterations, but this caused heavy overfitting, so I reduced it to 3,000–5,000, where training behaved more stably. The “sweet spot” appeared to be around 5,000 iterations, where the validation PSNR stopped improving but also did not degrade.
+
+Despite these adjustments, including tuning the near/far bounds, adding learning rate decay, and carefully selecting the iteration count—I was ultimately not able to achieve validation PSNR values higher than ~17.3 dB.
+                </p>
+
+            </section>
+
+            <!-- CONCLUSION -->
+            <section class="section" id="conclusion">
+                <h2 class="section-title">Conclusion</h2>
+
+                <p>
+                    This project illustrated the full NeRF pipeline: calibration, pose recovery, neural field training,
+                    and volumetric rendering. The final model produced coherent novel viewpoints and demonstrated the
+                    power of coordinate-based MLPs for implicit 3D representation.
+                </p>
+            </section>
+        </div>
+    </div>
+
+    <footer>
+        <p>CS180: Computer Vision · Project 4 — NeRF</p>
+        <p>Fall 2024</p>
+    </footer>
+</body>
+</html>

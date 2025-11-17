@@ -1,0 +1,16 @@
+proj4/.venv/
+.venv/ # extra safety for any future venvs
+proj4/.venv/
+.venv/
+venv/
+.venv/
+proj4/venv/
+proj4/.venv/
+venv/
+.venv/
+proj4/venv/
+proj4/.venv/
+*.pyc
+__pycache__/
+.DS_Store
+proj4/.DS_Store
