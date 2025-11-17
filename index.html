@@ -139,8 +139,7 @@
         <div class="project-card">
             <h2 class="project-title">Project 1 — Image Filtering & Hybrid Images</h2>
             <p class="project-description">
-                I built convolution filters from scratch to perform operations like sharpening, edge detection, and Gaussian blurring. I then created hybrid images by combining frequency components, demonstrating spatial vs. frequency-domain reasoning.
-            </p>
+                I implemented both single-scale and pyramid-based alignment algorithms to register the red and green channels to the blue channel, using normalized cross-correlation and multi-resolution refinement to handle high-resolution TIFF images efficiently. To improve robustness on challenging images with exposure differences, I incorporated Sobel-based edge maps and an edge-aware scoring function that emphasized structural consistency over raw intensity. The resulting pipeline produced accurate RGB reconstructions across the full dataset, with additional tuning for difficult cases like self_portrait and emir to ensure precise color alignment.
             <a href="./proj1/index.html" class="project-link">View Project →</a>
         </div>
 
@@ -163,7 +162,7 @@
         <div class="project-card">
             <h2 class="project-title">Project 4 — Neural Radiance Fields (NeRF)</h2>
             <p class="project-description">
-                I trained a NeRF model from scratch by implementing positional encoding, ray sampling, volumetric rendering, and MLP-based density/color prediction. I experimented with near/far plane tuning, learning-rate scheduling, and training iterations to optimize PSNR across my dataset.
+                I implemented the full NeRF pipeline from scratch, beginning with ArUco-based camera calibration and pose recovery, followed by building a 2D neural field to understand positional encoding and coordinate-based MLPs. I then extended this to a full 3D NeRF with ray generation, stratified sampling, and differentiable volume rendering to reconstruct scenes from multi-view images. Using both the Lego dataset and my own captured object, the model successfully produced coherent novel viewpoints, with performance influenced by near/far plane tuning, learning-rate decay, and network capacity.
             </p>
             <a href="./proj4/index.html" class="project-link">View Project →</a>
         </div>
